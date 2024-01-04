@@ -1,0 +1,154 @@
+@font-face {
+    font-family: 'Optician';
+    src: url('/assets/fonts/Optician-Sans.woff2') format('truetype');
+}
+@font-face {
+    font-family: 'Telegraf Regular';
+    src: url('/assets/fonts/PPTelegraf-Regular.otf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Telegraf Bold';
+    src: url('/assets/fonts/PPTelegraf-Ultrabold.otf') format('truetype');
+}
+
+body {
+    font-family: 'Telegraf Regular', sans-serif;
+    font-size:16px
+}
+
+
+
+body[dark="true"]{
+    --text:rgb(238, 240, 245);
+    --bg1:rgb(7, 11, 17);
+    --bg2:rgb(17, 25, 40);
+    --bg2trans:rgba(17, 25, 40, 0.75);
+    --border:rgba(255, 255, 255, 0.125);
+    --active:#6d7fba;
+    --ok:#8fad79;
+    --warning:#ada779;
+    --destroy:#ad7a79;
+}
+body[dark="false"]{
+    --text:rgb(0, 0, 0);
+    --bg1:#eee;
+    --bg2:#fff;
+    --bg2trans:rgba(255, 255, 255, 0.75);
+    --border:rgba(209, 213, 219, 0.3);
+}
+
+body{
+    background:var(--bg1);
+    color:var(--text);
+    word-wrap: break-word;
+}
+
+.card {
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    background-color: var(--bg2trans);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+.modal-c{
+    position:fixed;
+    z-index:999;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.modal{
+    width:50%;
+    display:grid;
+    grid-template-rows: 1fr 2fr 1fr;
+    gap:20px;
+    padding-top:20px;
+}
+.card-item{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin-inline:20px;
+    /* border-bottom: 1px solid var(--border); */
+}
+
+.title{
+    font-family: 'Telegraf Bold', sans-serif;
+    font-size:5rem;
+    text-align: center;
+}
+.buttons{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap:20px;
+    padding:20px;
+    padding-inline:0;
+}
+
+button{
+    font-family: 'Telegraf Bold', sans-serif;
+    font-size:4rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background-color: var(--bg2trans);
+    color:var(--text);
+    padding:10px 20px;
+    cursor:pointer;
+    transition: all 0.2s ease-in-out;
+    width:100%;
+    height:100%;
+}
+button:hover{
+    filter:saturate(1.2) brightness(1.1);
+    font-size:4.5rem;
+}
+button:active{
+    filter:saturate(1.3) brightness(0.8);
+    font-size:3.5rem;
+}
+.active{
+    background-color:var(--active);
+    color:var(--bg1);
+}
+.ok{
+    background-color:var(--ok);
+    color:var(--bg1);
+}
+.warning{
+    background-color:var(--warning);
+    color:var(--bg1);
+}
+.destroy{
+    background-color:var(--destroy);
+    color:var(--bg1);
+}
+
+textarea{
+    font-family: 'Telegraf Regular', sans-serif;
+    font-size:2rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background-color: var(--bg2trans);
+    color:var(--text);
+    padding:10px 10px;
+    transition: all 0.2s ease-in-out;
+    width:100%;
+    height:100%;
+    resize:none;
+}
+
+.hidden{
+    display:none !important;
+}
+.disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+    filter:grayscale(1);
+}
