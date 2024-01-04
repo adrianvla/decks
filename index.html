@@ -7,19 +7,24 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js' integrity='sha512-EZI2cBcGPnmR89wTgVnN3602Yyi7muWo8y1B3a8WmIv1J9tYG+udH4LvmYjLiGp37yHB7FfaPBo8ly178m9g4Q==' crossorigin='anonymous'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js' integrity='sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==' crossorigin='anonymous'></script>
     <link rel="stylesheet" href="style.css">
-    
 </head>
 <body dark="true">
-    <div class="modal-c">
+    <svg role="none">
+        <filter id="blur">
+          <feGaussianBlur stdDeviation="1000" edgeMode="duplicate" />
+        </filter>
+      </svg>
+      
+    <div class="modal-c hidden">
         <div class="modal card">
-            <div class="card-item"><span class="big title">Enter your database json</span></div>
-            <div class="card-item"><textarea name="" id="" cols="30" rows="10"></textarea></div>
-            <div class="card-item buttons">
-                <button class="active">OK</button>
-            </div>
+            <div class="card-item 1"><span class="big title"></span></div>
+            <div class="card-item 2"></div>
+            <div class="card-item buttons 3"></div>
         </div>
     </div>
-    <div class="c"></div>
+    <div class="c">
+        
+    </div>
 
     <script src="main.js" type="module"></script>
 </body>

@@ -14,7 +14,8 @@
 
 body {
     font-family: 'Telegraf Regular', sans-serif;
-    font-size:16px
+    font-size:16px;
+    
 }
 
 
@@ -25,10 +26,13 @@ body[dark="true"]{
     --bg2:rgb(17, 25, 40);
     --bg2trans:rgba(17, 25, 40, 0.75);
     --border:rgba(255, 255, 255, 0.125);
-    --active:#6d7fba;
+    --active:#627aca;
     --ok:#8fad79;
     --warning:#ada779;
     --destroy:#ad7a79;
+    --error:#b2504e;
+    --shadow:rgba(29, 32, 207, 0.9);
+    --light-shadow:rgba(68,29,207,0.2);
 }
 body[dark="false"]{
     --text:rgb(0, 0, 0);
@@ -39,9 +43,14 @@ body[dark="false"]{
 }
 
 body{
-    background:var(--bg1);
+    /* background:var(--bg1); */
     color:var(--text);
-    word-wrap: break-word;
+    word-wrap: break-word;    
+    background: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=1124&q=100') no-repeat center center fixed;
+    background-size: cover;
+}
+.c{
+    backdrop-filter:url(#blur) brightness(0.2);
 }
 
 .card {
@@ -69,6 +78,10 @@ body{
     grid-template-rows: 1fr 2fr 1fr;
     gap:20px;
     padding-top:20px;
+    
+    box-shadow: 0px 0px 1000px 0px var(--light-shadow);
+    background:var(--bg2);
+
 }
 .card-item{
     display:flex;
@@ -76,6 +89,7 @@ body{
     align-items:center;
     margin-inline:20px;
     /* border-bottom: 1px solid var(--border); */
+    width:100%;
 }
 
 .title{
@@ -91,10 +105,12 @@ body{
     padding:20px;
     padding-inline:0;
 }
+button.big{
+    font-size:4rem;
+}
 
 button{
     font-family: 'Telegraf Bold', sans-serif;
-    font-size:4rem;
     border-radius: 12px;
     border: 1px solid var(--border);
     background-color: var(--bg2trans);
@@ -104,6 +120,7 @@ button{
     transition: all 0.2s ease-in-out;
     width:100%;
     height:100%;
+    font-size:2rem;
 }
 button:hover{
     filter:saturate(1.2) brightness(1.1);
@@ -151,4 +168,102 @@ textarea{
     opacity:0.5;
     cursor:not-allowed;
     filter:grayscale(1);
+}
+.popup-c.error .popup{
+    background-color:var(--error);
+    box-shadow: 0px 0px 1000px 0px rgba(207, 29, 29, 0.657);
+}
+
+.popup-c{
+    position:fixed;
+    z-index:9999;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    backdrop-filter:blur(25px) saturate(180%);
+}
+.popup{
+    width:50%;
+    display:grid;
+    grid-template-rows: 1fr 2fr;
+    gap:20px;
+    padding-top:20px;
+    box-shadow: 0px 0px 1000px 0px var(--light-shadow);
+    border-radius:25px;
+    font-size:2.5rem;
+    padding:25px;
+    background:var(--bg2);
+}
+
+.c{
+    position:absolute;
+    top:0;
+    left:0;
+    display:flex;
+    flex-direction: column;
+    padding:25px;
+    gap:25px;
+    z-index: 0;
+    width: calc(100vw - 50px);
+    height: calc(100vh - 50px);
+}
+.glow{
+    text-shadow: 0px 0px 100px var(--shadow);
+}
+.glowbox{
+    text-shadow: 0px 0px 100px 0 var(--shadow);
+}
+h1{
+    font-size:3.5rem;
+    font-family: 'Optician', sans-serif;
+}
+.card-list{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap:20px;
+    padding:20px;
+}
+.studyset{
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items:center;
+    padding:25px;
+}
+
+.studyset .title{
+    font-size:3rem;
+    font-family: 'Optician', sans-serif;
+    text-align: center;
+}
+.description{
+    opacity:0.7;
+    font-size:1.5rem;
+}
+.studyset .card-item{
+    margin:0;
+    justify-content: start;
+}
+.pill{
+    width:100%;
+    height:15px;
+    background:var(--active);
+    border-radius:100px;
+    margin-bottom:10px;
+}
+
+.flex-opposite{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+.nav button{
+    max-width: 150px;
+    aspect-ratio: 2;
+    background:var(--active);
+    font-size:2rem !important;
 }
