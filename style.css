@@ -233,6 +233,8 @@ h1{
     justify-content: center;
     align-items:center;
     padding:25px;
+    cursor: pointer;
+    user-select: none;
 }
 
 .studyset .title{
@@ -266,4 +268,71 @@ h1{
     aspect-ratio: 2;
     background:var(--active);
     font-size:2rem !important;
+}
+.nozoom{
+    font-size:2rem !important;
+}
+
+.flex-row{
+    display:flex;
+
+}
+.addflashcard{
+    height:max-content;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--active);
+}
+
+.summary .card{
+    padding:25px;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.cardlist{
+    margin-top:25px;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    overflow-y:auto;
+}
+.flashcard{
+    width:calc(100% - 52px);
+    font-family:'Telegraf Regular', sans-serif;
+    font-size:2rem;
+    min-height:100px;
+    display: flex;
+    justify-content: stretch;
+    align-items: center;
+
+}
+
+.sides-preview{
+    display:grid;
+    justify-content: space-between;
+    align-items: stretch;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr 1fr;
+    width:100%;
+    gap:20px;
+    height: 100%;
+    flex:1;
+}
+
+.side-preview{
+    width:100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;    
+    border: 1px solid var(--border);
+    background-color: var(--bg2trans);
+    color:var(--text);
 }

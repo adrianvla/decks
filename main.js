@@ -67,12 +67,26 @@ async function showStudysets(){
         console.log(studyset);
     });
 }
+async function showCreateStudyset(){
+
+}
 let currentPage = "home";
 async function updatePage(){
+    switch(currentPage){
+        case "home":
+            showStudysets();
+            break;
+        case "createstudyset":
+            showCreateStudyset();
+            break;
+        default:
+            showStudysets();
+            break;
+    }
 
 }
 async function startApp(){
-    showStudysets();
+    // showStudysets();
 }
 $(document).ready(async function () {
     currentPage = "home";
