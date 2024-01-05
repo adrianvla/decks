@@ -7,7 +7,8 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://w
 let app = null, analytics = null, db = null, auth = null, storage = null,firebaseConfig = null;
 function connectToDB(){
     try{
-        app = initializeApp(firebaseConfig);
+        showPopup("Loading...","Please wait...","loading",false);
+        app = initializeApp(window.firebaseConfig);
         analytics = getAnalytics(app);
         db = getFirestore();
         closePopup();
@@ -94,19 +95,17 @@ $(document).ready(async function () {
         currentPage = "createstudyset";
         updatePage();
     });
-    showPopup("Loading...","Please wait...","loading",false);
     if (localStorage.getItem("db_id") != null) {
         console.log("DB ID found");
-        firebaseConfig = JSON.parse(localStorage.getItem("db_id"));
+        window.firebaseConfig = JSON.parse(localStorage.getItem("db_id"));
         connectToDB();
     }else{
-        await openModal("Enter your database json",$(`<textarea name="" id="" cols="30" rows="10"></textarea>`)[0],$(`<button class="active big">OK</button>`)[0]);
+        await openModal("Enter your database json",$(`<textarea></textarea>`)[0],$(`<button class="active big">OK</button>`)[0]);
         $(".modal-c .modal .3 button").click(function(){
             try{
                 // firebaseConfig = JSON.parse($(".modal-c .modal .2 textarea").val());
                 eval(`window.firebaseConfig = ${$(".modal-c .modal .2 textarea").val()}`);
-                console.log(firebaseConfig);
-                localStorage.setItem("db_id",JSON.stringify(firebaseConfig));
+                localStorage.setItem("db_id",JSON.stringify(window.firebaseConfig));
                 connectToDB();
                 $(".modal-c").addClass("hidden");
                 

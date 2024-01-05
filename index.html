@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cards</title>
+    <title>Decks</title>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js' integrity='sha512-EZI2cBcGPnmR89wTgVnN3602Yyi7muWo8y1B3a8WmIv1J9tYG+udH4LvmYjLiGp37yHB7FfaPBo8ly178m9g4Q==' crossorigin='anonymous'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js' integrity='sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==' crossorigin='anonymous'></script>
     <link rel="stylesheet" href="style.css">
@@ -23,8 +23,8 @@
         </div>
     </div>
     <div class="c">
-        <section>
-            <div class="flex-row">
+        <section class="flashcard-page">
+            <div class="grid12">
                 <div class="summary">
                     <div class="card">
                         <div class="card-item"><h1>Create Flashcards</h1></div>
@@ -32,6 +32,13 @@
                     </div>
                     <div class="cardlist">
                         <div class="card flashcard">
+                            <div class="options-c">
+                                <div class="options">
+                                    <div class="dot"></div>
+                                    <div class="dot"></div>
+                                    <div class="dot"></div>
+                                </div>
+                            </div>
                             <div class="card-item sides-preview">
                                 <div class="side-preview">FRONT</div>
                                 <div class="side-preview">BACK</div>
@@ -39,7 +46,23 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-content"></div>
+                    <div class="flashcard-editor">
+                        <div class="card center">
+                            <div class="card-item"><h1>Flashcard</h1></div>
+                            <div class="card-item texteditor">
+                                <textarea class="front" placeholder="Front"></textarea>
+                                <div class="tools">
+                                    <button class="nozoom bold round">B</button>
+                                    <button class="nozoom italic round">I</button>
+                                    <button class="nozoom underline round">U</button>
+                                    <button class="nozoom strikethrough round">S</button>
+                                    <button class="nozoom link round">Link</button>
+                                    <button class="nozoom image round">Image</button>
+                                </div>
+                            </div>
+                            <div class="card-item texteditor"><textarea class="back" placeholder="Back"></textarea></div>
+                        </div>
+                    </div>
             </div>
         </section>
     </div>
