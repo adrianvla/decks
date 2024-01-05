@@ -12,6 +12,11 @@
     src: url('/assets/fonts/PPTelegraf-Ultrabold.otf') format('truetype');
 }
 
+@font-face {
+    font-family: 'Telegraf Oblique';
+    src: url('/assets/fonts/PPTelegraf-RegularOblique.otf') format('truetype');
+}
+
 body {
     font-family: 'Telegraf Regular', sans-serif;
     font-size:16px;
@@ -22,6 +27,7 @@ body {
 
 body[dark="true"]{
     --text:rgb(238, 240, 245);
+    --text-filter:brightness(0) invert(95%) sepia(7%) saturate(109%) hue-rotate(184deg) brightness(100%) contrast(95%);
     --bg1:rgb(7, 11, 17);
     --bg2:rgb(17, 25, 40);
     --bg2trans:rgba(17, 25, 40, 0.75);
@@ -156,6 +162,7 @@ textarea{
     border-radius: 12px;
     border: 1px solid var(--border);
     background-color: var(--bg2trans);
+    backdrop-filter: blur(25px) saturate(180%);
     color:var(--text);
     padding:10px 10px;
     transition: all 0.2s ease-in-out;
@@ -391,9 +398,11 @@ section.flashcard-page > div{
     display: flex;
     flex-direction: column;
 }
-textarea:focus, input:focus{
+textarea:focus, input:focus, textarea:active, input:active{
     outline: none;
     box-shadow: 0px 0px 1000px 0px var(--shadow);
+    backdrop-filter: blur(25px) saturate(180%);
+    background-color: var(--bg2trans);
 }
 
 .flashcard-editor{
@@ -405,6 +414,7 @@ textarea:focus, input:focus{
 .flashcard-editor .card{
     gap:20px;
     padding-bottom:20px;
+    width: 100%;
 }
 
 .flashcard-editor textarea{
@@ -416,6 +426,7 @@ textarea:focus, input:focus{
 
 .texteditor{
     position: relative;
+    width: 100%;
 }
 .texteditor .tools{
     display:flex;
@@ -424,14 +435,131 @@ textarea:focus, input:focus{
     align-items: center;
     backdrop-filter: blur(25px) saturate(180%);
     background-color: var(--bg2trans);
-    border-radius: 12px;
+    border-radius: 12px 12px 0 0;
     border: 1px solid var(--border);
-    top:-3rem;
+    border-bottom: 0;
+    top:calc(-3rem);
     right:0;
+    z-index:3;
     
 }
 .texteditor .tools button{
     border:0;
-    border-radius:0;
+    border-radius:12px;
     font-size:1.5rem !important;
+    z-index:2;
+    background: #00000000 !important;
+    font-family:"Telegraf Regular", sans-serif;
+}
+.texteditor .tools button:hover{
+    background: #00000033 !important;
+
+}
+
+.being-edited .virtual-textarea{
+    border-top-right-radius: 0 !important;
+}
+
+.bold{
+    font-family: "Telegraf Bold", sans-serif !important;
+}
+
+.italic{
+    font-family: "Telegraf Oblique", sans-serif !important;
+}
+
+.underline{
+    text-decoration: underline !important;
+}
+.strikethrough{
+    text-decoration: line-through !important;
+}
+.tools .add-image{
+    width:25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right:10px;
+}
+
+.icon{
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.icon img{
+    fill:var(--text);
+    filter:var(--text-filter);
+    height:24px;
+    user-select: none;
+    pointer-events:none;
+}
+
+.wysiwyg{
+    position: relative;
+    width:100%;
+    height:max-content;
+    min-height:100px;
+}
+
+.wysiwyg textarea{
+    position:absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.virtual-textarea{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% - 20px);
+    height: calc(100% - 20px);
+    min-height:100px;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    font-family: "Telegraf Regular", sans-serif;
+    font-size: 2rem;
+    resize: none;
+    border: 0;
+    outline: none;
+    background: none;
+    color:var(--text);
+    pointer-events: none;
+    user-select: none;
+    z-index: 1;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background-color: var(--bg2trans);
+    backdrop-filter: blur(25px) saturate(180%);
+    color:var(--text);
+    padding:10px 10px;
+    transition: all 0.2s ease-in-out;
+}
+
+.wysiwyg .virtual{
+    z-index: 2;
+    opacity:0 !important;
+    resize:none;
+    width: calc(100% - 20px);
+    height: calc(100% - 20px);
+    padding:10px 10px;
+}
+
+.wysiwyg .selection{
+    position: absolute;
+    border-radius: 3px;
+    background-color: var(--active);
+    opacity:0.3;
+    pointer-events: none;
+    user-select: none;
+    z-index: 5;
+    height:2rem;
+    min-width:5px;
 }

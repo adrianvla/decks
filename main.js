@@ -45,6 +45,39 @@ async function closePopup(){
 async function showError(e){
     showPopup("Error!",e,"error");
 }
+async function registerVirtualTextarea(){
+    $(".wysiwyg").each(function(){
+        let el = $(this);
+        async function updateCursor(){
+            let startPos = el.find(".virtual").prop("selectionStart");
+            let endPos = el.find(".virtual").prop("selectionEnd");
+            let sel = document.getSelection();
+            let bound = sel.getRangeAt(0).getBoundingClientRect();
+            console.log(bound)
+            gsap.to(el.find(".selection")[0],{x:bound.x - el.find(".virtual").offset().left,y:bound.y - el.find(".virtual").offset().top,duration:0.1});
+        }
+        el.on("input",function(){
+            let val = el.find("textarea").val();
+            el.find(".virtual-textarea").html(val);
+            updateCursor();
+        });
+        let mousedown = false;
+        el.on("mousedown",function(){
+            mousedown = true;
+        });
+        el.on("mouseup",function(){
+            mousedown = false;
+        });
+        el.on("mousemove",function(){
+            if(mousedown)
+                updateCursor();
+        });
+        el.on("click",()=>{
+            updateCursor();
+        });
+    });
+}
+$(document).ready(registerVirtualTextarea);
 async function showStudysets(){
     $(".c").html(`<section>
     <div class="flex-opposite nav"><h1 class="glow">Your studysets</h1><button class="glowbox" id="createstudyset">+ Add</button></div>
@@ -68,8 +101,9 @@ async function showStudysets(){
         console.log(studyset);
     });
 }
-async function showCreateStudyset(){
 
+async function showCreateStudyset(){
+    registerVirtualTextarea();
 }
 let currentPage = "home";
 async function updatePage(){
