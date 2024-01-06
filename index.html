@@ -8,6 +8,12 @@
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js' integrity='sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==' crossorigin='anonymous'></script>
     <link rel="stylesheet" href="style.css">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            extensions: ["tex2jax.js", "TeX/AMSmath.js"],
+            jax: ["input/TeX", "output/SVG"],
+        })
+    </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body dark="true">
@@ -25,52 +31,7 @@
         </div>
     </div>
     <div class="c">
-        <section class="flashcard-page">
-            <div class="grid12">
-                <div class="summary">
-                    <div class="card">
-                        <div class="card-item"><h1>Create Flashcards</h1></div>
-                        <div class="card-item"><button class="nozoom addflashcard">+ Add Flashcard</button></div>
-                    </div>
-                    <div class="cardlist">
-                        <div class="card flashcard">
-                            <div class="options-c">
-                                <div class="options">
-                                    <div class="dot"></div>
-                                    <div class="dot"></div>
-                                    <div class="dot"></div>
-                                </div>
-                            </div>
-                            <div class="card-item sides-preview">
-                                <div class="side-preview">FRONT</div>
-                                <div class="side-preview">BACK</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                    <div class="flashcard-editor">
-                        <div class="card center">
-                            <div class="card-item"><h1>Flashcard</h1></div>
-                            <div class="card-item texteditor being-edited">
-                                <div class="wysiwyg">
-                                    <div class="selection"></div>
-                                    <textarea class="virtual" spellcheck="false"></textarea>
-                                    <div class="virtual-textarea"></div>
-                                </div>
-                                <div class="tools">
-                                    <button class="nozoom bold round">B</button>
-                                    <button class="nozoom italic round">I</button>
-                                    <button class="nozoom underline round">U</button>
-                                    <button class="nozoom strikethrough round">S</button>
-                                    <button class="nozoom LaTeX round">\(\LaTeX\)</button>
-                                    <button class="nozoom add-image round"><div class="icon"><img src="assets/images/image-regular.svg" alt="Image"></div></button>
-                                </div>
-                            </div>
-                            <!-- <div class="card-item texteditor"><textarea class="back" placeholder="Back"></textarea></div> -->
-                        </div>
-                    </div>
-            </div>
-        </section>
+        
     </div>
     <script src="main.js" type="module"></script>
 </body>

@@ -20,6 +20,7 @@
 body {
     font-family: 'Telegraf Regular', sans-serif;
     font-size:16px;
+    overflow-x:hidden;
     
 }
 
@@ -31,6 +32,7 @@ body[dark="true"]{
     --bg1:rgb(7, 11, 17);
     --bg2:rgb(17, 25, 40);
     --bg2trans:rgba(17, 25, 40, 0.75);
+    --bg2transmore:rgba(17, 25, 40, 0.3);
     --border:rgba(255, 255, 255, 0.125);
     --active:#627aca;
     --ok:#8fad79;
@@ -307,18 +309,34 @@ h1{
     justify-content: center;
     align-items: center;
 }
-
-.cardlist{
+.summary{
+    position: relative;
+    height:calc(100vh - 40px);
+}
+.cardlist-c{
     margin-top:25px;
     display:flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     width: 100%;
+    height:calc(100vh - 125px - var(--summary-height));
+    position: relative;
     overflow-y:auto;
+}
+.cardlist{
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    position: absolute;
+    left:0;
+    top:0;
+    gap:20px;
 }
 .flashcard{
     width:calc(100% - 52px);
+    max-width:33vw;
     font-family:'Telegraf Regular', sans-serif;
     font-size:2rem;
     min-height:100px;
@@ -326,14 +344,17 @@ h1{
     justify-content: stretch;
     align-items: center;
     position:relative;
+    height:max-content;
 }
 
 .sides-preview{
-    display:grid;
+    /* display:grid; */
+    display:flex;
+    flex-direction: column;
     justify-content: space-between;
     align-items: stretch;
-    grid-template-rows: 1fr;
-    grid-template-columns: 1fr 1fr;
+    /* grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr; */
     width:100%;
     gap:20px;
     height: 100%;
@@ -343,7 +364,8 @@ h1{
 
 .side-preview{
     width:100%;
-    height: 100%;
+    /* height: calc(100% - 20px); */
+    flex-wrap:wrap;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -351,6 +373,19 @@ h1{
     border: 1px solid var(--border);
     background-color: var(--bg2trans);
     color:var(--text);
+    padding-top:20px;
+    padding-bottom:20px;
+}
+.side-preview img{
+    width:100%;
+    height:100%;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background-color: var(--bg2trans);
+    color:var(--text);
+    padding-top:10px;
+    padding-bottom:10px;
 }
 
 .flashcard .options-c{
@@ -363,6 +398,39 @@ h1{
     align-items: center;
     z-index: 1;
     padding-top:10px;
+}
+.flashcard .context-menu-c{
+    position:absolute;
+    top:2rem;
+    left:25%;
+    width:50%;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 1;
+    background: var(--bg2trans);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(25px) saturate(180%);
+    overflow:hidden;
+    box-shadow: 0px 0px 1000px 0px var(--shadow);
+    opacity: 1;
+}
+.context-menu-c .entry{
+    border-bottom: 1px solid var(--border);
+    width:100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select:none;
+    padding:10px 20px;
+    cursor:pointer;
+    transition:all 0.1s ease-in-out;
+}
+.context-menu-c .entry:hover{
+    background:var(--active);
+    color:var(--bg1);
 }
 
 .flashcard .options{
@@ -502,26 +570,60 @@ textarea:focus, input:focus, textarea:active, input:active{
     height:max-content;
     min-height:100px;
 }
-
-.wysiwyg textarea, .measurement-element{
-    position:absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    margin: 0;
-    padding:10px 10px;
-    white-space:pre;
+.wysiwyg .virtual::selection{
+    background:#00000000;
+}
+.measurement-element{
+    min-height:100px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    font-family: "Telegraf Regular", sans-serif;
+    font-size: 2rem;
+    resize: none;
+    border: 0;
+    outline: none;
+    background: none;
+    color:var(--text);
+    /* pointer-events: none;
+    user-select: none; */
     border: 1px solid var(--border);
     background-color: var(--bg2trans);
     backdrop-filter: blur(25px) saturate(180%);
-    overflow:hidden;
-    user-select: none;
-}
-.wysiwyg textarea::selection{
+    z-index: 1;
+    border-radius: 12px;
     background:#00000000;
+    color:var(--text);
+    padding:10px 10px;
+    z-index:4;
 }
-
+.virtual{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(100% - 20px);
+    height: calc(100% - 20px);
+    min-height:100px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    font-family: "Telegraf Regular", sans-serif;
+    font-size: 2rem;
+    border: 0;
+    outline: none;
+    border-radius: 12px;
+    /* color:#00000000 !important; */
+    padding:10px 10px;
+    transition: all 0.2s ease-in-out, height 0 linear;
+    /* z-index:5; */
+    background:#00000000 !important;
+}
+.wysiwyg *::selection{
+    background:var(--active);
+    color:var(--text);
+}
 .virtual-textarea{
     position: absolute;
     top: 0;
@@ -529,7 +631,7 @@ textarea:focus, input:focus, textarea:active, input:active{
     width: calc(100% - 20px);
     height: calc(100% - 20px);
     min-height:100px;
-    white-space: pre;
+    white-space: normal;
     overflow-wrap: break-word;
     word-wrap: break-word;
     word-break: break-word;
@@ -542,42 +644,27 @@ textarea:focus, input:focus, textarea:active, input:active{
     color:var(--text);
     pointer-events: none;
     user-select: none;
-    z-index: 1;
     border-radius: 12px;
     background:#00000000;
     color:var(--text);
     padding:10px 10px;
-    transition: all 0.2s ease-in-out;
+    transition: all 0.2s ease-in-out, height 0 linear;
     z-index:4;
 }
-
-.wysiwyg .virtual,.measurement-element{
-    z-index: 2;
-    resize:none;
+.wysiwyg .background{
+    position: absolute;
+    top: 0;
+    left: 0;
     width: calc(100% - 20px);
     height: calc(100% - 20px);
+    min-height:100px;
     padding:10px 10px;
-    color:#00000000;
+    border: 1px solid var(--border);
+    background-color: var(--bg2trans);
+    backdrop-filter: blur(25px) saturate(180%);
+    border-radius: 12px;
+    border-top-right-radius: 0;
 }
-
-.measurement-element span{
-    /* pointer-events:none;
-    display:flex;
-    opacity:0; */
-    /* white-space:normal !important; */
-    /* white-space:pre !important; */
-    /* overflow-wrap: break-word;
-    word-wrap: break-word;
-    word-break: break-word;
-    overflow:hidden; */
-}
-.measurement-letter{
-    position:absolute;
-    opacity:0;
-    pointer-events:none;
-    font-size: 2rem;
-}
-
 .wysiwyg .selection{
     position: absolute;
     border-radius: 3px;
@@ -591,4 +678,150 @@ textarea:focus, input:focus, textarea:active, input:active{
     padding:5px;
     padding-inline:0;
     margin-top:-5px;
+}
+.wysiwyg .virtual b{
+    font-family: "Telegraf Bold", sans-serif;
+}
+.wysiwyg .virtual u{
+    border-bottom: 2px solid currentColor;
+    text-decoration:none;
+    display: inline-block;
+    line-height: 0.75;
+}
+.wysiwyg .virtual strike{
+    text-decoration: line-through;
+}
+.dragndrop{
+    position: absolute;
+    /* top: calc(3rem + 20px); */
+    top:0;
+    height:calc(100vh - 60px);
+    left: 0;
+    /* width: calc(100% - 50px); */
+    width: calc(100% - 60px);
+    min-height:100px;
+    padding:10px 10px;
+    border: 1px solid var(--border);
+    background-color: var(--bg2transmore);
+    backdrop-filter: blur(25px) saturate(180%);
+    border-radius: 12px;
+    box-shadow: 0px 0px 1000px 0px var(--light-shadow);
+    z-index: 999;
+    user-select: none;
+    aspect-ratio: 1;
+    padding:25px;
+    pointer-events: all;
+}
+
+.dragndrop > div{
+    width:100%;
+    height:100%;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background-color: var(--bg2trans);
+    backdrop-filter: blur(25px) saturate(180%);
+    color:var(--text);
+    font-size:2rem;
+    transition: all 0.2s ease-in-out;
+    cursor:pointer;
+    position:relative;
+    z-index: 10;
+}
+
+.dragndrop > div > span{
+    position:absolute;
+    bottom:2rem;
+    opacity:0.5;
+}
+.dragndrop > div > .plus-icon{
+    position:absolute;
+    opacity:0.7;
+    width:100%;
+    height:100%;
+}
+.dragndrop > div > .plus-icon > ._1{
+    position:absolute;
+    top:35%;
+    left:25%;
+    width:50%;
+    height:10px;
+    border-radius:25px;
+    background:var(--text);
+    transform:rotate(90deg);
+}
+.dragndrop > div > .plus-icon > ._2{
+    position:absolute;
+    top:35%;
+    left:25%;
+    width:50%;
+    height:10px;
+    border-radius:25px;
+    background:var(--text);
+}
+
+.mtop{
+    margin-top: calc(20px + 3rem);
+}
+
+.flashcard-editor .card{
+    padding:20px;
+    padding-bottom: 41px;
+}
+.flashcard-editor.editing-mode .card{
+    padding-bottom: 20px;
+}
+#saveflashcardbutton{
+    margin-top:20px;
+}
+button.saveflashcard{
+    height:3rem;
+    background:var(--active);
+    font-size:2rem !important;
+    border:0;
+    box-shadow: 0px 0px 1000px 0px var(--light-shadow);
+    z-index: 999;
+}
+
+input{
+    font-family: "Telegraf Regular", sans-serif;
+    font-size: 2rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background-color: var(--bg2trans);
+    backdrop-filter: blur(25px) saturate(180%);
+    color:var(--text);
+    padding:10px 10px;
+    transition: all 0.2s ease-in-out;
+    width:100%;
+    height:100%;
+    resize:none;
+}
+
+input[type="color"]{
+    height: 3rem;
+    width: 3rem;
+    padding:0;
+    border: 0 !important;
+    cursor:pointer;
+}
+
+.input-color-c{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow:hidden;
+    border:0 !important;
+}
+.back-btn-c{
+    position: absolute;
+    top:0;
+    left:0;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    padding-top:10px;
 }
