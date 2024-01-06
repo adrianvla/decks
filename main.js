@@ -287,6 +287,7 @@ async function showCreateStudyset(){
             <div class="card">
                 <div class="card-item back-btn-c"><button class="nozoom back-btn"><</button></div>
                 <div class="card-item"><h1>Create/Edit Flashcards</h1></div>
+                <div class="card-item"><button class="nozoom study-set">Study set</button></div>
                 <div class="card-item"><button class="nozoom addflashcard">+ Add Flashcard</button></div>
             </div>
             <div class="cardlist-c">
@@ -374,12 +375,17 @@ async function showCreateStudyset(){
         });
 
         $(".cardlist").append(el);
-        $(".back-btn-c").click(function(){
-            console.log(1)
-            currentPage = "home";
-            updatePage();
-        });
     }
+    $(".back-btn-c").click(function(){
+        flashcards = {};
+        studySet = {};
+        currentPage = "home";
+        updatePage();
+    });
+    $(".study-set").click(function(){
+        currentPage = "study";
+        updatePage();
+    });
     Object.keys(flashcards).forEach(registerFlashcard);
     $("#saveflashcardbutton").click(function(){
         editMode = false;
@@ -401,7 +407,29 @@ async function showCreateStudyset(){
         $(".fronteditor .virtual, .backeditor .virtual").html("");
         saveStudySet();
     });
+}
 
+async function showStudy(){
+    let el = $(`<section>
+    <h1>Study Set</h1>
+    <div class="study-select">
+        <div class="card">
+            <div class="card-item"><h1>Study using:</h1></div>
+            <div class="card-item"><button class="nozoom spaced-repetition">Spaced Repetition</button></div>
+            <div class="card-item"><button class="nozoom study-using-cards">Cards</button></div>
+            <!-- <div class="card-item"><button class="nozoom">Spaced Repetition</button></div> -->
+        </div>
+    </div>
+</section>`)[0];
+    $(".c").html(el);
+    $(".spaced-repetition").click(function(){
+        currentPage = "spacedrepetition";
+        updatePage();
+    });
+    $(".study-using-cards").click(function(){
+        currentPage = "studyusingcards";
+        updatePage();
+    });
 }
 let currentPage = "home";
 async function updatePage(){
@@ -411,6 +439,9 @@ async function updatePage(){
             break;
         case "createstudyset":
             showCreateStudyset();
+            break;
+        case "study":
+            showStudy();
             break;
         default:
             showStudysets();
