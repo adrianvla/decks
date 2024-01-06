@@ -45,22 +45,189 @@ async function closePopup(){
 async function showError(e){
     showPopup("Error!",e,"error");
 }
+function getTextBoundingRect(input, selectionStart, selectionEnd, debug) {
+    // Basic parameter validation
+    if(!input || !('value' in input)) return input;
+    if(typeof selectionStart == "string") selectionStart = parseFloat(selectionStart);
+    if(typeof selectionStart != "number" || isNaN(selectionStart)) {
+        selectionStart = 0;
+    }
+    if(selectionStart < 0) selectionStart = 0;
+    else selectionStart = Math.min(input.value.length, selectionStart);
+    if(typeof selectionEnd == "string") selectionEnd = parseFloat(selectionEnd);
+    if(typeof selectionEnd != "number" || isNaN(selectionEnd) || selectionEnd < selectionStart) {
+        selectionEnd = selectionStart;
+    }
+    if (selectionEnd < 0) selectionEnd = 0;
+    else selectionEnd = Math.min(input.value.length, selectionEnd);
+
+    // If available (thus IE), use the createTextRange method
+    if (typeof input.createTextRange == "function") {
+        var range = input.createTextRange();
+        range.collapse(true);
+        range.moveStart('character', selectionStart);
+        range.moveEnd('character', selectionEnd - selectionStart);
+        return range.getBoundingClientRect();
+    }
+    // createTextRange is not supported, create a fake text range
+    var offset = getInputOffset(),
+        topPos = offset.top,
+        leftPos = offset.left,
+        width = getInputCSS('width', true),
+        height = getInputCSS('height', true);
+
+        // Styles to simulate a node in an input field
+    var cssDefaultStyles = "white-space:pre;padding:0;margin:0;",
+        listOfModifiers = ['direction', 'font-family', 'font-size', 'font-size-adjust', 'font-variant', 'font-weight', 'font-style', 'letter-spacing', 'line-height', 'text-align', 'text-indent', 'text-transform', 'word-wrap', 'word-spacing'];
+
+    topPos += getInputCSS('padding-top', true);
+    topPos += getInputCSS('border-top-width', true);
+    leftPos += getInputCSS('padding-left', true);
+    leftPos += getInputCSS('border-left-width', true);
+    leftPos += 1; //Seems to be necessary
+
+    for (var i=0; i<listOfModifiers.length; i++) {
+        var property = listOfModifiers[i];
+        cssDefaultStyles += property + ':' + getInputCSS(property) +';';
+    }
+    // End of CSS variable checks
+
+    var text = input.value,
+        textLen = text.length,
+        fakeClone = document.createElement("div");
+    if(selectionStart > 0) appendPart(0, selectionStart);
+    var fakeRange = appendPart(selectionStart, selectionEnd);
+    if(textLen > selectionEnd) appendPart(selectionEnd, textLen);
+
+    // Styles to inherit the font styles of the element
+    fakeClone.style.cssText = cssDefaultStyles;
+    fakeClone.classList.add("measurement-element");
+
+    // Styles to position the text node at the desired position
+    fakeClone.style.position = "absolute";
+    fakeClone.style.top = topPos + "px";
+    fakeClone.style.left = leftPos + "px";
+    fakeClone.style.width = width + "px";
+    fakeClone.style.height = height + "px";
+    document.body.appendChild(fakeClone);
+    var returnValue = fakeRange.getBoundingClientRect(); //Get rect
+    returnValue.compensate = {"bounds":fakeClone.getBoundingClientRect()};
+
+    if (!debug) fakeClone.parentNode.removeChild(fakeClone); //Remove temp
+    return returnValue;
+
+    // Local functions for readability of the previous code
+    function appendPart(start, end){
+        var span = document.createElement("span");
+        span.style.cssText = cssDefaultStyles; //Force styles to prevent unexpected results
+        span.textContent = text.substring(start, end);
+        fakeClone.appendChild(span);
+        return span;
+    }
+    // Computing offset position
+    function getInputOffset(){
+        var body = document.body,
+            win = document.defaultView,
+            docElem = document.documentElement,
+            box = document.createElement('div');
+        box.style.paddingLeft = box.style.width = "1px";
+        body.appendChild(box);
+        var isBoxModel = box.offsetWidth == 2;
+        body.removeChild(box);
+        box = input.getBoundingClientRect();
+        var clientTop  = docElem.clientTop  || body.clientTop  || 0,
+            clientLeft = docElem.clientLeft || body.clientLeft || 0,
+            scrollTop  = win.pageYOffset || isBoxModel && docElem.scrollTop  || body.scrollTop,
+            scrollLeft = win.pageXOffset || isBoxModel && docElem.scrollLeft || body.scrollLeft;
+        return {
+            top : box.top  + scrollTop  - clientTop,
+            left: box.left + scrollLeft - clientLeft};
+    }
+    function getInputCSS(prop, isnumber){
+        var val = document.defaultView.getComputedStyle(input, null).getPropertyValue(prop);
+        return isnumber ? parseFloat(val) : val;
+    }
+}
 async function registerVirtualTextarea(){
     $(".wysiwyg").each(function(){
         let el = $(this);
         async function updateCursor(){
             let startPos = el.find(".virtual").prop("selectionStart");
             let endPos = el.find(".virtual").prop("selectionEnd");
-            let sel = document.getSelection();
-            let bound = sel.getRangeAt(0).getBoundingClientRect();
-            console.log(bound)
-            gsap.to(el.find(".selection")[0],{x:bound.x - el.find(".virtual").offset().left,y:bound.y - el.find(".virtual").offset().top,duration:0.1});
+            let bound = getTextBoundingRect(el.find(".virtual")[0],startPos,endPos);
+            gsap.to(el.find(".selection")[0],{x:bound.x - el.find(".virtual").offset().left,y:bound.y - el.find(".virtual").offset().top,width:bound.width,height:bound.height,duration:0.1,ease:"power4.out"});
         }
-        el.on("input",function(){
+        function calculateCharWidth(ch){
+            let tempEl = $("<div class='measurement-letter' style='pointer-events:none;opacity:0;position:absolute'>"+ch+"</div>");
+            tempEl.css("font-size",el.find(".virtual").css("font-size"));
+            tempEl.css("font-family",el.find(".virtual").css("font-family"));
+            $("body").append(tempEl);
+            let w = tempEl.width();
+            tempEl.remove();
+            return w;
+        }
+        let wacc = [0];
+        let waccline = 0;
+        let inputFunc = function(e){
             let val = el.find("textarea").val();
+            if(e.key == "Backspace"){
+                wacc[waccline] -= calculateCharWidth(val[val.length-1]);
+                if(wacc[waccline] < 0){
+                    console.log("LESS THAN 0")
+                    wacc[waccline] = 0;
+                    if(waccline > 0)
+                    {
+                        console.log("POPPING")
+                        waccline--;
+                        wacc.pop();
+                    }
+                }
+            }
+            if(e.key == "Enter"){
+                waccline++;
+                wacc.push(0);
+            }
+            if(e.key.length == 1){
+                wacc[waccline] += calculateCharWidth(e.key);
+            }
+            if(wacc[waccline] > el.find("textarea").width()){
+                val += "\n";
+                waccline++;
+                wacc.push(0);
+            }
+            console.log(wacc)
+            // let wacc = 0;
+            // const val_length = val.length;
+            // const textarea_width = el.find("textarea").width();
+            // // console.log(val_length,textarea_width)
+            // for(let i = 0;i<val_length;i++){
+            //     let charwidth = calculateCharWidth(val[i]);
+            //     wacc += charwidth;
+            //     if(val[i] == "\n") wacc=0;
+            //     // console.log("CHARWIDTH:",charwidth)
+            //     if(wacc > textarea_width){
+            //         val = val.substring(0,i) + "\n" + val.substring(i);
+            //         wacc = 0;
+            //     }
+            // }
+            console.log(val)
+            el.find("textarea").val(val);
             el.find(".virtual-textarea").html(val);
+            let tempEl = $("<div style='hidden measurement-element' style='pointer-events:none;display:none;opacity:0'>"+val.replaceAll("\n","<br>")+"<br></div>");
+            tempEl.css("font-size",el.find(".virtual").css("font-size"));
+            tempEl.css("font-family",el.find(".virtual").css("font-family"));
+            tempEl.css("width",String(el.find("textarea").width()) + "px");
+            $("body").append(tempEl);
+            let h = tempEl.height();
+            tempEl.remove();
+            gsap.to(el.find(".virtual")[0],{duration:0.1,ease:"power4.out",height:h});
+            gsap.to(el.find(".virtual-textarea")[0],{duration:0.1,ease:"power4.out",height:el.find(".virtual").height()+15});
             updateCursor();
-        });
+        };
+        inputFunc({key:"Backspace"});
+        // el.on("input",inputFunc);
+        el.on("keydown",inputFunc);
+        el.on("keyup",updateCursor);
         let mousedown = false;
         el.on("mousedown",function(){
             mousedown = true;

@@ -503,14 +503,23 @@ textarea:focus, input:focus, textarea:active, input:active{
     min-height:100px;
 }
 
-.wysiwyg textarea{
+.wysiwyg textarea, .measurement-element{
     position:absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     margin: 0;
-    padding: 0;
+    padding:10px 10px;
+    white-space:pre;
+    border: 1px solid var(--border);
+    background-color: var(--bg2trans);
+    backdrop-filter: blur(25px) saturate(180%);
+    overflow:hidden;
+    user-select: none;
+}
+.wysiwyg textarea::selection{
+    background:#00000000;
 }
 
 .virtual-textarea{
@@ -520,7 +529,7 @@ textarea:focus, input:focus, textarea:active, input:active{
     width: calc(100% - 20px);
     height: calc(100% - 20px);
     min-height:100px;
-    white-space: pre-wrap;
+    white-space: pre;
     overflow-wrap: break-word;
     word-wrap: break-word;
     word-break: break-word;
@@ -535,31 +544,51 @@ textarea:focus, input:focus, textarea:active, input:active{
     user-select: none;
     z-index: 1;
     border-radius: 12px;
-    border: 1px solid var(--border);
-    background-color: var(--bg2trans);
-    backdrop-filter: blur(25px) saturate(180%);
+    background:#00000000;
     color:var(--text);
     padding:10px 10px;
     transition: all 0.2s ease-in-out;
+    z-index:4;
 }
 
-.wysiwyg .virtual{
+.wysiwyg .virtual,.measurement-element{
     z-index: 2;
-    opacity:0 !important;
     resize:none;
     width: calc(100% - 20px);
     height: calc(100% - 20px);
     padding:10px 10px;
+    color:#00000000;
+}
+
+.measurement-element span{
+    /* pointer-events:none;
+    display:flex;
+    opacity:0; */
+    /* white-space:normal !important; */
+    /* white-space:pre !important; */
+    /* overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow:hidden; */
+}
+.measurement-letter{
+    position:absolute;
+    opacity:0;
+    pointer-events:none;
+    font-size: 2rem;
 }
 
 .wysiwyg .selection{
     position: absolute;
     border-radius: 3px;
     background-color: var(--active);
-    opacity:0.3;
+    opacity:0.7;
     pointer-events: none;
     user-select: none;
-    z-index: 5;
+    z-index: 3;
     height:2rem;
     min-width:5px;
+    padding:5px;
+    padding-inline:0;
+    margin-top:-5px;
 }
