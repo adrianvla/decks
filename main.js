@@ -4,6 +4,7 @@ import { getFirestore, getDocs, collection, getDoc, doc, setDoc, updateDoc, addD
 import { onAuthStateChanged, signOut, GoogleAuthProvider, useDeviceLanguage, signInWithPopup, getAuth } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-storage.js";
 
+
 let app = null, analytics = null, db = null, auth = null, storage = null,firebaseConfig = null;
 function connectToDB(){
     try{
@@ -408,6 +409,31 @@ async function showCreateStudyset(){
         saveStudySet();
     });
 }
+let studyProgress = {};
+let mode = "spacedrepetition";
+async function saveProgress(){
+    console.log("Saving...");
+    console.log(studyProgress);
+    if(studySetID == null){
+        console.log("ERROR: studySetID is null");
+    }else{
+        await updateDoc(doc(db, "progress", studySetID), {spacedRepetition:studyProgress});
+        console.log("Saved!");
+    }
+}
+async function getProgressSpacedRepetition(){
+    const docRef = doc(db, "progress", studySetID);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        studyProgress = docSnap.data().spacedRepetition;
+        return true;
+    } else {
+        // doc.data() will be undefined in this case
+        console.log("No progress found.");
+        studyProgress = {};
+        return false;
+    }
+}
 
 async function showStudy(){
     let el = $(`<section>
@@ -417,7 +443,6 @@ async function showStudy(){
             <div class="card-item"><h1>Study using:</h1></div>
             <div class="card-item"><button class="nozoom spaced-repetition">Spaced Repetition</button></div>
             <div class="card-item"><button class="nozoom study-using-cards">Cards</button></div>
-            <!-- <div class="card-item"><button class="nozoom">Spaced Repetition</button></div> -->
         </div>
     </div>
 </section>`)[0];
@@ -431,6 +456,47 @@ async function showStudy(){
         updatePage();
     });
 }
+async function partitionIntoBoxes(f){
+    let boxes = {};
+    let boxSize = 15;
+    let boxCount = Math.ceil(f.length/boxSize);
+    for(let i = 0;i < boxCount;i++){
+        boxes[i] = [];
+    }
+    for(let i = 0;i < f.length;i++){
+        boxes[Math.floor(i/boxSize)].push(f[i]);
+    }
+    return boxes;
+}
+async function showSpacedRepetition(){
+    let el = $(`<section class="studying">
+    <div class="progress-c">
+        <div class="progress">
+            <div class="active-indicator"></div>
+        </div>
+    </div>
+    <div class="deck">
+        <div class="card">
+            <div class="card-item 1"><span class="card-side">AAAAA</span></div>
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="button ok">Easy</button>
+        <button class="button warning">Ok</button>
+        <button class="button destroy">Hard</button>
+    </div>
+</section>`)[0];
+    mode = "spacedrepetition";
+    $(".c").html(el);
+    let f = Object.keys(studySet.flashcards);
+    if(!await getProgressSpacedRepetition()){
+        console.log("Creating new progress...")
+        studyProgress = await partitionIntoBoxes(f);
+        await setDoc(doc(db, "progress", studySetID), {spacedRepetition:{}});
+        await saveProgress();
+    }
+
+}
 let currentPage = "home";
 async function updatePage(){
     switch(currentPage){
@@ -442,6 +508,9 @@ async function updatePage(){
             break;
         case "study":
             showStudy();
+            break;
+        case "spacedrepetition":
+            showSpacedRepetition();
             break;
         default:
             showStudysets();

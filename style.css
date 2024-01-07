@@ -872,3 +872,94 @@ section .study-select .card button{
     height:100%;
     resize:none;
 }
+
+.progress-c{
+    width:100%;
+}
+.progress{
+    width:100%;
+    height:max-content;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap:20px;
+    position: relative;
+}
+
+.progress .pill{
+    margin: 0;
+}
+
+.progress .pill.easy{
+    background: var(--ok);
+}
+.progress .pill.ok{
+    background: var(--warning);
+}
+.progress .pill.hard{
+    background: var(--destroy);
+}
+
+.progress .pill.active{
+    box-shadow: 0 0 40px 0 var(--shadow);
+}
+
+.active-indicator{
+    box-shadow: 0 0 0 3px var(--text);
+    position:absolute;
+
+}
+
+.deck{
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap:20px;
+    padding-top:20px;
+    height:100%;
+    width:100%;
+}
+
+.deck .card{
+    width:100%;
+    height:max-content;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap:20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background-color: var(--bg2trans);
+    backdrop-filter: blur(25px) saturate(180%);
+    color:var(--text);
+    padding:20px;
+    padding-inline:0;
+    transition: all 0.2s ease-in-out;
+    width:100%;
+    height:100%;
+    resize:none;
+    cursor:pointer;
+    user-select: none;
+}
+.card-side{
+    font-size:2rem;
+}
+
+section.studying{
+    height:100%;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap:20px;
+    padding-top:20px;
+    padding-bottom:20px;
+}
+section.studying .buttons{
+    width:100%;
+    padding:0;
+    max-width:1000px;
+    min-height:100px;
+}
