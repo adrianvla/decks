@@ -411,13 +411,14 @@ async function showCreateStudyset(){
 }
 let studyProgress = {};
 let mode = "spacedrepetition";
+let currentBox = 0;
 async function saveProgress(){
     console.log("Saving...");
     console.log(studyProgress);
     if(studySetID == null){
         console.log("ERROR: studySetID is null");
     }else{
-        await updateDoc(doc(db, "progress", studySetID), {spacedRepetition:studyProgress});
+        await updateDoc(doc(db, "progress", studySetID), {spacedRepetition:{currentBox:currentBox,boxes:studyProgress}});
         console.log("Saved!");
     }
 }
@@ -425,12 +426,14 @@ async function getProgressSpacedRepetition(){
     const docRef = doc(db, "progress", studySetID);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-        studyProgress = docSnap.data().spacedRepetition;
+        studyProgress = docSnap.data().spacedRepetition.boxes;
+        currentBox = docSnap.data().spacedRepetition.currentBox;
         return true;
     } else {
         // doc.data() will be undefined in this case
         console.log("No progress found.");
         studyProgress = {};
+        currentBox = 0;
         return false;
     }
 }
@@ -464,7 +467,7 @@ async function partitionIntoBoxes(f){
         boxes[i] = [];
     }
     for(let i = 0;i < f.length;i++){
-        boxes[Math.floor(i/boxSize)].push(f[i]);
+        boxes[Math.floor(i/boxSize)].push({id:f[i],status:-1});
     }
     return boxes;
 }
@@ -473,28 +476,335 @@ async function showSpacedRepetition(){
     <div class="progress-c">
         <div class="progress">
             <div class="active-indicator"></div>
+            <div class="perfect-pills"></div>
         </div>
     </div>
     <div class="deck">
         <div class="card">
-            <div class="card-item 1"><span class="card-side">AAAAA</span></div>
+            <div class="card-item"><span class="card-side">Front Placeholder</span></div>
         </div>
     </div>
     <div class="buttons">
-        <button class="button ok">Easy</button>
-        <button class="button warning">Ok</button>
         <button class="button destroy">Hard</button>
+        <button class="button warning">Ok</button>
+        <button class="button ok">Easy</button>
     </div>
 </section>`)[0];
     mode = "spacedrepetition";
     $(".c").html(el);
     let f = Object.keys(studySet.flashcards);
-    if(!await getProgressSpacedRepetition()){
+    let existFlashcards = {};
+    for(let i in f){
+        existFlashcards[f[i]]=true;
+    }
+    async function resetProgress(){
         console.log("Creating new progress...")
         studyProgress = await partitionIntoBoxes(f);
-        await setDoc(doc(db, "progress", studySetID), {spacedRepetition:{}});
-        await saveProgress();
+        await setDoc(doc(db, "progress", studySetID), {spacedRepetition:{currentBox:0,boxes:studyProgress}});
     }
+    if(!await getProgressSpacedRepetition()){ //first time use
+        await resetProgress();
+    }
+    if(currentBox >= Object.keys(studyProgress).length){ //reset progress if problem
+        await resetProgress();
+        showSpacedRepetition();
+        return;
+    }
+    console.log(studyProgress,existFlashcards,studySet);
+    //remove non-existant flashcards
+    for(let i = 0;i < Object.keys(studyProgress).length;i++){
+        for(let j = 0;j<studyProgress[i].length;j++){
+            if(!(studyProgress[i][j].id in existFlashcards)){
+                studyProgress[i].splice(j,1);
+            }
+        }
+    }
+    //add new flashcards
+    let existsInProgress = {};
+    for(let i = 0;i < Object.keys(studyProgress).length;i++){
+        for(let j = 0;j<studyProgress[i].length;j++){
+            existsInProgress[studyProgress[i][j].id]=true;
+        }
+    }
+    for(let i = 0;i < f.length;i++){
+        if(!(f[i] in existsInProgress)){
+            let lastBoxLength = studyProgress[Object.keys(studyProgress).length-1].length;
+            if(lastBoxLength >= 15)
+                studyProgress[Object.keys(studyProgress).length] = [{id:f[i],status:-1}];
+            else
+                studyProgress[Object.keys(studyProgress).length-1].push({id:f[i],status:-1});
+        }        
+    }
+    await saveProgress();
+    async function createProgressBar(){
+        $(".studying .progress").html(`<div class="active-indicator"></div><div class="perfect-pills hidden"></div>`);
+        let boxCount = studyProgress[currentBox].length;
+        let firstPill = null;
+        for(let i = 0;i < boxCount;i++){
+            let s = studyProgress[currentBox][i].status;
+            let el = $(`<div class="pill" id="pill_${studyProgress[currentBox][i].id}"></div>`)[0];
+            if(s == -1){}else if(s == 0){
+                $(el).addClass("hard");
+            }else if(s == 1){
+                $(el).addClass("ok");
+            }else if(s == 2){
+                $(el).addClass("easy");
+            }else if(s == 3){
+                $(el).addClass("perfect");
+            }
+            if(s==3)
+                $(".studying .progress .perfect-pills").append(el).removeClass("hidden");
+            else
+                $(".studying .progress").append(el);
+            if(i==0) firstPill = el;
+        }
+        $(firstPill).addClass("active");
+        gsap.to(".active-indicator",{duration:0,ease:"power4.out",left:$(firstPill).position().left-10,width:$(firstPill).width()+20,height:$(firstPill).height()+20,top:$(firstPill).position().top-10});
+    }
+    await createProgressBar();
+    let currentCardKey = studyProgress[0][0].id;
+    let flipped = false;
+    $(".studying .deck .card").click(function(){
+        //flip card
+        flipped = !flipped;
+        if(flipped){
+            let tl = gsap.timeline();
+            tl.fromTo($(this),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
+            tl.call(()=>{$(this).find(".card-side").html(studySet.flashcards[currentCardKey].back)});
+            tl.fromTo($(this),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
+        }else{
+            let tl = gsap.timeline();
+            tl.fromTo($(this),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
+            tl.call(()=>{$(this).find(".card-side").html(studySet.flashcards[currentCardKey].front)});
+            tl.fromTo($(this),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
+        }
+    });
+    async function showFc(){
+        $(".studying .deck .card").find(".card-side").html(studySet.flashcards[currentCardKey].front);
+    }
+    async function finishDeck(){
+        console.log("Finished");
+        let el = $(`<section class="studying">
+        <div class="deck">
+            <div class="card">
+                <h1>Finished!</h1>
+                <div class="card-item"><button class="nozoom close-study-gui">Go Back</button></div>
+            </div>
+        </div>
+    </section>`)[0];
+        $(".c").html(el);
+        $(".close-study-gui").click(function(){
+            currentPage = "home";
+            updatePage();
+        });
+
+    }
+    async function nextBoxCheck(_cardsStillNotPerfect){
+        if(_cardsStillNotPerfect == 0){
+            currentBox++;
+            if(currentBox >= Object.keys(studyProgress).length){
+                await resetProgress();
+                finishDeck();
+                return true;
+            }
+        }
+        return false;
+    }
+    $(".studying .buttons .ok").click(async function(){ //EASY
+        flipped = false;
+        //move flashcard to the back of studyProgress
+        let splicePos = 0;
+        let cardsStillNotPerfect = 0;
+        for(let i = 0;i < studyProgress[currentBox].length;i++){
+            splicePos++;
+            if(studyProgress[currentBox][i].status < 3){
+                cardsStillNotPerfect++;
+            }
+            if(cardsStillNotPerfect >= 1){
+                break;
+            }
+        }
+        for(let i = 0;i<splicePos;i++){
+            let s = studyProgress[currentBox].splice(0,1)[0];
+            studyProgress[currentBox].push(s);
+        }
+        console.log(studyProgress);
+        //update progress
+        let _status = studyProgress[currentBox][studyProgress[currentBox].length-1].status;
+        if(_status == -1){
+            studyProgress[currentBox][studyProgress[currentBox].length-1].status = 1;
+        }else if(_status < 3){
+            studyProgress[currentBox][studyProgress[currentBox].length-1].status++;
+        }
+        //update currentCardKey
+        currentCardKey = studyProgress[currentBox][0].id;
+        let _cardsStillNotPerfect = 0;
+        for(let i = 0;i < studyProgress[currentBox].length;i++){
+            if(studyProgress[currentBox][i].status < 3){
+                _cardsStillNotPerfect++;
+            }
+        }
+        //animate progress bar
+        let firstPill = $(".studying .progress > .pill").eq(0);
+        let firstPillPos = $(firstPill).position();
+        let firstPillWidth = $(firstPill).width();
+        let firstPillHeight = $(firstPill).height();
+        let lastPillPos  = $(".studying .progress > .pill").eq(-1).position();
+
+        firstPill.removeClass("hard");
+        firstPill.removeClass("ok");
+        if(studyProgress[currentBox][studyProgress[currentBox].length-1].status == 3){
+            firstPill.removeClass("easy");
+            firstPill.addClass("perfect");
+        }else{
+            //second pill
+            $(".studying .progress > .pill").eq(1).css("margin-left",String(firstPillWidth+20)+"px");
+            firstPill.css("width",String(firstPillWidth)+"px");
+            $(".studying .progress > .pill").eq(-1).css("margin-right","0px");
+    
+            firstPill.css("position","absolute");
+            gsap.fromTo(firstPill,firstPillPos,{duration:0.5,ease:"power4.inOut",left:lastPillPos.left,width:firstPillWidth,height:firstPillHeight,top:lastPillPos.top});
+            gsap.to($(".studying .progress > .pill").eq(1)[0],{duration:0.5,marginLeft:0,ease:"power4.inOut"});
+            gsap.to($(".studying .progress > .pill").eq(-1)[0],{duration:0.5,marginRight:firstPillWidth+20,ease:"power4.inOut"});
+            if(studyProgress[currentBox][studyProgress[currentBox].length-1].status == 1)
+                firstPill.addClass("ok");
+            else
+                firstPill.addClass("easy");
+        }
+        setTimeout(async ()=>{await createProgressBar()},500);
+        while((studyProgress[currentBox][0].status == 3) && (_cardsStillNotPerfect > 0)){
+            let s = studyProgress[currentBox].splice(0,1)[0];
+            studyProgress[currentBox].push(s);
+        }
+        if(await nextBoxCheck(_cardsStillNotPerfect)) return;
+        await saveProgress();
+        await showFc();
+    });
+
+    $(".studying .buttons .warning").click(async function(){ //OK
+        flipped = false;
+        //move flashcard to the back of studyProgress
+        let splicePos = 0;
+        let cardsStillNotPerfect = 0;
+        for(let i = 0;i < studyProgress[currentBox].length;i++){
+            splicePos++;
+            if(studyProgress[currentBox][i].status < 3){
+                cardsStillNotPerfect++;
+            }
+            if(cardsStillNotPerfect >= 1){
+                break;
+            }
+        }
+        for(let i = 0;i<splicePos;i++){
+            let s = studyProgress[currentBox].splice(0,1)[0];
+            studyProgress[currentBox].push(s);
+        }
+        console.log(studyProgress);
+        //update progress
+        studyProgress[currentBox][studyProgress[currentBox].length-1].status = 1;
+        //update currentCardKey
+        currentCardKey = studyProgress[currentBox][0].id;
+        let _cardsStillNotPerfect = 0;
+        for(let i = 0;i < studyProgress[currentBox].length;i++){
+            if(studyProgress[currentBox][i].status < 3){
+                _cardsStillNotPerfect++;
+            }
+        }
+        //animate progress bar
+        let firstPill = $(".studying .progress > .pill").eq(0);
+        let firstPillPos = $(firstPill).position();
+        let firstPillWidth = $(firstPill).width();
+        let firstPillHeight = $(firstPill).height();
+        let lastPillPos  = $(".studying .progress > .pill").eq(-1).position();
+        //second pill
+        $(".studying .progress > .pill").eq(1).css("margin-left",String(firstPillWidth+20)+"px");
+        firstPill.css("width",String(firstPillWidth)+"px");
+        $(".studying .progress > .pill").eq(-1).css("margin-right","0px");
+
+        firstPill.css("position","absolute");
+        gsap.fromTo(firstPill,firstPillPos,{duration:0.5,ease:"power4.inOut",left:lastPillPos.left,width:firstPillWidth,height:firstPillHeight,top:lastPillPos.top});
+        gsap.to($(".studying .progress > .pill").eq(1)[0],{duration:0.5,marginLeft:0,ease:"power4.inOut"});
+        gsap.to($(".studying .progress > .pill").eq(-1)[0],{duration:0.5,marginRight:firstPillWidth+20,ease:"power4.inOut"});
+        firstPill.removeClass("easy");
+        firstPill.removeClass("hard");
+        firstPill.addClass("ok");
+        setTimeout(async ()=>{await createProgressBar()},500);
+        while((studyProgress[currentBox][0].status == 3) && (_cardsStillNotPerfect > 0)){
+            let s = studyProgress[currentBox].splice(0,1)[0];
+            studyProgress[currentBox].push(s);
+        }
+        if(await nextBoxCheck(_cardsStillNotPerfect)) return;
+        await saveProgress();
+        await showFc();
+    });
+
+    $(".studying .buttons .destroy").click(async function(){ //Hard
+        flipped = false;
+        //update progress
+        studyProgress[currentBox][0].status = 0;
+        //move flashcard to the 4th position of studyProgress
+        if(studyProgress[currentBox].length >= 4){
+            let s = studyProgress[currentBox].splice(0,1)[0];
+            let splicePos = 0;
+            let cardsStillNotPerfect = 0;
+            for(let i = 0;i < studyProgress[currentBox].length;i++){
+                splicePos++;
+                if(studyProgress[currentBox][i].status < 3){
+                    cardsStillNotPerfect++;
+                }
+                if(cardsStillNotPerfect >= 3){
+                    break;
+                }
+            }
+
+            studyProgress[currentBox].splice(splicePos,0,s);
+        }else{
+            let s = studyProgress[currentBox].splice(0,1)[0];
+            studyProgress[currentBox].push(s);
+        }
+        console.log(studyProgress);
+        //update currentCardKey
+        currentCardKey = studyProgress[currentBox][0].id;
+        //animate progress bar
+        let firstPill = $(".studying .progress > .pill").eq(0);
+        let firstPillPos = $(firstPill).position();
+        let firstPillWidth = $(firstPill).width();
+        let firstPillHeight = $(firstPill).height();
+        let pillToWarpTo = -1;
+        let _cardsStillNotPerfect = 0;
+        for(let i = 0;i < studyProgress[currentBox].length;i++){
+            if(studyProgress[currentBox][i].status < 3){
+                _cardsStillNotPerfect++;
+            }
+        }
+        if(_cardsStillNotPerfect >= 4){
+            pillToWarpTo = 3;
+        }
+        let lastPillPos = $(".studying .progress > .pill").eq(pillToWarpTo).position();
+        
+          
+        //second pill
+        $(".studying .progress > .pill").eq(1).css("margin-left",String(firstPillWidth+20)+"px");
+        firstPill.css("width",String(firstPillWidth)+"px");
+        $(".studying .progress > .pill").eq(pillToWarpTo).css("margin-right","0px");
+
+        firstPill.css("position","absolute");
+        gsap.fromTo(firstPill,firstPillPos,{duration:0.5,ease:"power4.inOut",left:lastPillPos.left,width:firstPillWidth,height:firstPillHeight,top:lastPillPos.top});
+        gsap.to($(".studying .progress > .pill").eq(1)[0],{duration:0.5,marginLeft:0,ease:"power4.inOut"});
+        gsap.to($(".studying .progress > .pill").eq(pillToWarpTo)[0],{duration:0.5,marginRight:firstPillWidth+20,ease:"power4.inOut"});
+        firstPill.removeClass("easy");
+        firstPill.removeClass("ok");
+        firstPill.addClass("hard");
+        setTimeout(async ()=>{await createProgressBar()},500);
+        while((studyProgress[currentBox][0].status == 3) && (_cardsStillNotPerfect > 0)){
+            let s = studyProgress[currentBox].splice(0,1)[0];
+            studyProgress[currentBox].push(s);
+        }
+        if(await nextBoxCheck(_cardsStillNotPerfect)) return;
+        await saveProgress();
+        await showFc();
+    });
+
 
 }
 let currentPage = "home";

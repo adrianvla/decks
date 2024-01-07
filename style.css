@@ -679,16 +679,16 @@ textarea:focus, input:focus, textarea:active, input:active{
     padding-inline:0;
     margin-top:-5px;
 }
-.wysiwyg .virtual b{
+b{
     font-family: "Telegraf Bold", sans-serif;
 }
-.wysiwyg .virtual u{
+u{
     border-bottom: 2px solid currentColor;
     text-decoration:none;
     display: inline-block;
     line-height: 0.75;
 }
-.wysiwyg .virtual strike{
+strike{
     text-decoration: line-through;
 }
 .dragndrop{
@@ -885,9 +885,28 @@ section .study-select .card button{
     gap:20px;
     position: relative;
 }
+.progress .perfect-pills{
+    width:100%;
+    height:max-content;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap:20px;
+    position: relative;
+}
+.progress .perfect-pills .pill{
+    min-width:15px;
+}
+.progress .perfect-pills::after{
+    content: "";
+    height: 30px;
+    border: 1px solid var(--border);
+}
 
 .progress .pill{
     margin: 0;
+    transition:background 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    box-shadow:0;
 }
 
 .progress .pill.easy{
@@ -899,15 +918,19 @@ section .study-select .card button{
 .progress .pill.hard{
     background: var(--destroy);
 }
+.progress .pill.perfect{
+    background: var(--active);
+    opacity:0.5;
+}
 
 .progress .pill.active{
     box-shadow: 0 0 40px 0 var(--shadow);
 }
 
 .active-indicator{
-    box-shadow: 0 0 0 3px var(--text);
+    box-shadow: 0 0 0 3px var(--border);
     position:absolute;
-
+    border-radius:200px;
 }
 
 .deck{
@@ -919,6 +942,10 @@ section .study-select .card button{
     padding-top:20px;
     height:100%;
     width:100%;
+    perspective:2000px;
+}
+body{
+    overflow:hidden;
 }
 
 .deck .card{
@@ -936,12 +963,13 @@ section .study-select .card button{
     color:var(--text);
     padding:20px;
     padding-inline:0;
-    transition: all 0.2s ease-in-out;
+    /* transition: all 0.2s ease-in-out; */
     width:100%;
     height:100%;
     resize:none;
     cursor:pointer;
     user-select: none;
+    transform-style: preserve-3d;
 }
 .card-side{
     font-size:2rem;
@@ -962,4 +990,32 @@ section.studying .buttons{
     padding:0;
     max-width:1000px;
     min-height:100px;
+}
+
+
+
+@media (max-width: 767px) {
+    body{
+        background:var(--bg1);
+        overflow:auto;
+    }
+    .nav{
+        flex-direction: column;
+    }
+    .modal,.popup{
+        width:100%;
+        height:100%;
+        padding:0;
+        border-radius:0;
+    }
+    .title{
+        font-size:2.5rem;
+    }
+    button{
+        font-size:2rem !important;
+    }
+
+    .progress .perfect-pills .pill{
+        min-width:3px;
+    }
 }
