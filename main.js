@@ -565,6 +565,7 @@ async function showSpacedRepetition(){
     await createProgressBar();
     let currentCardKey = studyProgress[0][0].id;
     let flipped = false;
+    showFc();
     $(".studying .deck .card").click(function(){
         //flip card
         flipped = !flipped;
