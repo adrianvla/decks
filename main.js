@@ -536,6 +536,7 @@ async function showSpacedRepetition(){
         }        
     }
     await saveProgress();
+    await showFc();
     async function createProgressBar(){
         $(".studying .progress").html(`<div class="active-indicator"></div><div class="perfect-pills hidden"></div>`);
         let boxCount = studyProgress[currentBox].length;
