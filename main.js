@@ -6,6 +6,8 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://w
 
 
 let app = null, analytics = null, db = null, auth = null, storage = null,firebaseConfig = null;
+let loaders = [];
+let loadingElements = [];
 function connectToDB(){
     try{
         showPopup("Loading...","Please wait...","loading",false);
@@ -227,7 +229,9 @@ async function showStudysets(){
     <div class="flex-opposite nav"><h1 class="glow">Your studysets</h1><button class="glowbox" id="createstudyset">+ Add</button></div>
     <div class="card-list"></div>
 </section>`);
+    showLoaderAtElement($(".card-list")[0]);
     const studysets = await getDocs(collection(db, "studysets"));
+    removeAllLoaders();
     studysets.forEach((doc) => {
         let studyset = doc.data();
         let el = $(`
@@ -402,6 +406,9 @@ async function showCreateStudyset(){
     });
 
     $(".addflashcard").click(function(){
+        //return if flashcard is empty
+        if($(".fronteditor .virtual").html().length == 0 || $(".backeditor .virtual").html().length == 0) return;
+
         let newUUID = "_"+Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         flashcards[newUUID] = {front:$(".fronteditor .virtual").html(),back:$(".backeditor .virtual").html()};
         registerFlashcard(newUUID);
@@ -436,6 +443,52 @@ async function getProgressSpacedRepetition(){
         currentBox = 0;
         return false;
     }
+}
+async function getProgressFlashcards(){
+    const docRef = doc(db, "progress_flashcards", studySetID);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        studyProgress = docSnap.data().flashcards;
+        currentBox = null;
+        return true;
+    } else {
+        // doc.data() will be undefined in this case
+        console.log("No progress found.");
+        studyProgress = {};
+        currentBox = null;
+        return false;
+    }
+}
+async function showLoaderAtElement(el){
+    let uuid = "_"+Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    let appendable = $(`<div class="loader-c" id="loader${uuid}"><div class="loader"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>`)[0];
+    //position loader on top of element by appending it to body
+    $("body").append(appendable);
+    let rect = el.getBoundingClientRect();
+    $(appendable).css("top",String(rect.top)+"px");
+    $(appendable).css("left",String(rect.left)+"px");
+    $(appendable).css("width",String(rect.width)+"px");
+    $(appendable).css("height",String(rect.height)+"px");
+    gsap.fromTo(appendable, {opacity: 0}, {opacity: 1, duration: 0.5, ease: "power2.out"});
+    gsap.to(el,{opacity:0,duration:0.5,ease:"power2.out"});
+    loaders.push(appendable);
+    loadingElements.push(el);
+    return appendable;
+}
+
+async function removeAllLoaders(){
+    for(let i = 0;i < loaders.length;i++){
+        gsap.fromTo(loaders[i], {opacity: 1}, {opacity: 0, duration: 0.5, ease: "power2.out"});
+    }
+    for(let i = 0;i < loadingElements.length;i++){
+        gsap.to(loadingElements[i],{opacity:1,duration:0.5,ease:"power2.out"});
+    }
+    setTimeout(async ()=>{
+        for(let i = 0;i < loaders.length;i++){
+            loaders[i].remove();
+        }
+        loaders = [];loadingElements = [];
+    },500);
 }
 
 async function showStudy(){
@@ -492,6 +545,7 @@ async function showSpacedRepetition(){
 </section>`)[0];
     mode = "spacedrepetition";
     $(".c").html(el);
+    showLoaderAtElement($(".studying")[0]);
     let f = Object.keys(studySet.flashcards);
     let existFlashcards = {};
     for(let i in f){
@@ -536,7 +590,7 @@ async function showSpacedRepetition(){
         }        
     }
     await saveProgress();
-    
+    removeAllLoaders();
     async function createProgressBar(){
         $(".studying .progress").html(`<div class="active-indicator"></div><div class="perfect-pills hidden"></div>`);
         let boxCount = studyProgress[currentBox].length;
@@ -565,7 +619,6 @@ async function showSpacedRepetition(){
     await createProgressBar();
     let currentCardKey = studyProgress[0][0].id;
     let flipped = false;
-    showFc();
     $(".studying .deck .card").click(function(){
         //flip card
         flipped = !flipped;
@@ -806,9 +859,206 @@ async function showSpacedRepetition(){
         await saveProgress();
         await showFc();
     });
-
-
+    showFc();
+    // console.log(currentCardKey)
 }
+async function showFlashcardStudyMode(){
+    mode = "flashcards";
+    let el = $(`
+    <section class="studying">
+        <div class="progress-c">
+            <div class="progress-bar">
+                <div class="easy"></div>
+                <div class="ok"></div>
+                <div class="hard"></div>
+            </div>
+        </div>
+        <div class="deck">
+            <div class="card">
+                <div class="card-item"><span class="card-side">Front Placeholder</span></div>
+            </div>
+        </div>
+        <div class="buttons">
+            <button class="button destroy">Hard</button>
+            <button class="button warning">Ok</button>
+            <button class="button ok">Easy</button>
+        </div>
+    </section>`)[0];
+    $(".c").html(el);
+    showLoaderAtElement($(".studying")[0]);
+    let f = Object.keys(studySet.flashcards);
+    let existFlashcards = {};
+    for(let i in f){
+        existFlashcards[f[i]]=true;
+    }
+    async function resetProgress(){
+        console.log("Creating new progress...")
+        console.log("Checking if spaced repetition progress exists...");
+        if(await getProgressSpacedRepetition()){
+            console.log("Spaced repetition progress exists, copying...");
+            let boxes = studyProgress;
+            studyProgress = {};
+            for(let i = 0;i < Object.keys(boxes).length;i++){
+                for(let j = 0;j < boxes[i].length;j++){
+                    studyProgress[boxes[i][j].id] = boxes[i][j];
+                }
+            }
+            await setDoc(doc(db, "progress_flashcards", studySetID), {flashcards:studyProgress});
+        }else{
+            console.log("Spaced repetition progress does not exist, creating new progress...");
+            studyProgress = {};
+            for(let i = 0;i < f.length;i++){
+                studyProgress[f[i]] = {id:f[i],status:-1};
+            }
+            await setDoc(doc(db, "progress_flashcards", studySetID), {flashcards:studyProgress});
+        }
+        console.log("Done!");
+    }
+    if(!await getProgressFlashcards()){ //first time use
+        await resetProgress();
+    }
+    console.log({studyProgress:studyProgress,existFlashcards:existFlashcards,studySet:studySet});
+    //remove non-existant flashcards
+    for(let i = 0;i < Object.keys(studyProgress).length;i++){
+        if(!(studyProgress[Object.keys(studyProgress)[i]].id in existFlashcards)){
+            delete studyProgress[i];
+        }
+    }
+    //add new flashcards
+    let existsInProgress = {};
+    for(let i = 0;i < Object.keys(studyProgress).length;i++){
+        existsInProgress[studyProgress[Object.keys(studyProgress)[i]].id]=true;
+    }
+    for(let i = 0;i < f.length;i++){
+        if(!(f[i] in existsInProgress)){
+            studyProgress[f[i]] = {id:f[i],status:-1};
+        }        
+    }
+
+    async function createProgressBar(){
+        let easyPercent = 0;
+        let okPercent = 0;
+        let hardPercent = 0;
+        let flashCardNumber = 0;
+        Object.keys(studyProgress).forEach(k=>{
+            let fc = studyProgress[k];
+            if(fc.status == 0){
+                hardPercent++;
+            }else if(fc.status == 1){
+                okPercent++;
+            }else if(fc.status >= 2){
+                easyPercent++;
+            }
+            flashCardNumber++;
+        });
+        easyPercent = easyPercent/flashCardNumber;
+        okPercent = okPercent/flashCardNumber;
+        hardPercent = hardPercent/flashCardNumber;
+        gsap.to(".studying .progress-bar .easy",{width:String(easyPercent*100)+"%",duration:0.5,ease:"power4.out"});
+        gsap.to(".studying .progress-bar .ok",{width:String(okPercent*100)+"%",duration:0.5,ease:"power4.out"});
+        gsap.to(".studying .progress-bar .hard",{width:String(hardPercent*100)+"%",duration:0.5,ease:"power4.out"});
+    }
+    await createProgressBar();
+    let currentCardKey = Object.keys(studyProgress)[0];
+    let flipped = false;
+    showFc();
+    removeAllLoaders();
+
+    $(".studying .deck .card").click(function(){
+        //flip card
+        flipped = !flipped;
+        if(flipped){
+            let tl = gsap.timeline();
+            tl.fromTo($(this),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
+            tl.call(()=>{$(this).find(".card-side").html(studySet.flashcards[currentCardKey].back)});
+            tl.fromTo($(this),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
+        }else{
+            let tl = gsap.timeline();
+            tl.fromTo($(this),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
+            tl.call(()=>{$(this).find(".card-side").html(studySet.flashcards[currentCardKey].front)});
+            tl.fromTo($(this),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
+        }
+    });
+    async function showFc(){
+        $(".studying .deck .card").find(".card-side").html(studySet.flashcards[currentCardKey].front);
+    }
+
+    $(".studying .buttons .ok").click(async function(){ //Easy
+        flipped = false;
+        //update progress
+        if(studyProgress[currentCardKey].status == -1){
+            studyProgress[currentCardKey].status = 2;
+        }else if(studyProgress[currentCardKey].status == 0){
+            studyProgress[currentCardKey].status = 1;
+        }else if(studyProgress[currentCardKey].status == 1){
+            studyProgress[currentCardKey].status = 2;
+        }
+        //update currentCardKey
+        let keys = Object.keys(studyProgress);
+        let currentIndex = keys.indexOf(currentCardKey);
+        if(currentIndex+1 >= keys.length){
+            currentCardKey = keys[0];
+        }else{
+            currentCardKey = keys[currentIndex+1];
+        }
+        console.log(currentCardKey,studyProgress,studyProgress[currentCardKey]);
+        //animate progress bar
+        await createProgressBar();
+        await saveProgress();
+        await showFc();
+    });
+
+    $(".studying .buttons .warning").click(async function(){ //OK
+        flipped = false;
+        //update progress
+        if(studyProgress[currentCardKey].status == -1){
+            studyProgress[currentCardKey].status = 1;
+        }else if(studyProgress[currentCardKey].status == 0){
+            studyProgress[currentCardKey].status = 1;
+        }else if(studyProgress[currentCardKey].status == 1){
+            studyProgress[currentCardKey].status = 1;
+        }
+        //update currentCardKey
+        let keys = Object.keys(studyProgress);
+        let currentIndex = keys.indexOf(currentCardKey);
+        if(currentIndex+1 >= keys.length){
+            currentCardKey = keys[0];
+        }else{
+            currentCardKey = keys[currentIndex+1];
+        }
+        console.log(currentCardKey,studyProgress,studyProgress[currentCardKey]);
+        //animate progress bar
+        await createProgressBar();
+        await saveProgress();
+        await showFc();
+    });
+
+    $(".studying .buttons .destroy").click(async function(){ //Hard
+        flipped = false;
+        //update progress
+        if(studyProgress[currentCardKey].status == -1){
+            studyProgress[currentCardKey].status = 0;
+        }else if(studyProgress[currentCardKey].status == 0){
+            studyProgress[currentCardKey].status = 0;
+        }else if(studyProgress[currentCardKey].status == 1){
+            studyProgress[currentCardKey].status = 0;
+        }
+        //update currentCardKey
+        let keys = Object.keys(studyProgress);
+        let currentIndex = keys.indexOf(currentCardKey);
+        if(currentIndex+1 >= keys.length){
+            currentCardKey = keys[0];
+        }else{
+            currentCardKey = keys[currentIndex+1];
+        }
+        console.log(currentCardKey,studyProgress,studyProgress[currentCardKey]);
+        //animate progress bar
+        await createProgressBar();
+        await saveProgress();
+        await showFc();
+    });
+}
+
 let currentPage = "home";
 async function updatePage(){
     switch(currentPage){
@@ -823,6 +1073,9 @@ async function updatePage(){
             break;
         case "spacedrepetition":
             showSpacedRepetition();
+            break;
+        case "studyusingcards":
+            showFlashcardStudyMode();
             break;
         default:
             showStudysets();
