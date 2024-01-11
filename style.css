@@ -971,6 +971,8 @@ body{
     cursor:pointer;
     user-select: none;
     transform-style: preserve-3d;
+    overflow-y: auto;
+    max-height:100%;
 }
 .card-side{
     font-size:2rem;
