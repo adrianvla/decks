@@ -975,6 +975,7 @@ body{
     max-height:100%;
 }
 .card-side{
+    height:max-content;
     font-size:2rem;
 }
 
