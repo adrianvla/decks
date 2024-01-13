@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-analytics.js";
-import { getFirestore, getDocs, collection, getDoc, doc, setDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
+import { getFirestore, getDocs, collection, getDoc, doc, setDoc, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
 import { onAuthStateChanged, signOut, GoogleAuthProvider, useDeviceLanguage, signInWithPopup, getAuth } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-storage.js";
 
@@ -224,30 +224,125 @@ async function registerVirtualTextarea(){
         el.on("keyup",inputFunc);
     });
 }
+async function openDragNDropImport(){
+    return new Promise((resolve,reject)=>{
+        let uuid = "_"+Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        let appendable = $(`<div class="dragndrop" id="dragndrop${uuid}"><div><div class="plus-icon"><div class="_1"></div><div class="_2"></div></div><span>Drop Files Here</span></div></div>`)[0];
+        gsap.fromTo(appendable, {opacity: 0,y:100}, {opacity: 1,y:0, duration: 0.2, ease: "power2.out"});
+
+        $("body").append(appendable);
+        let dragndrop = $("#dragndrop"+uuid+" > div");
+        dragndrop.on("dragenter",function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            dragndrop.addClass("dragging");
+        });
+        dragndrop.on("dragleave",function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            dragndrop.removeClass("dragging");
+        });
+        dragndrop.on("dragover",function(e){
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        dragndrop.on("drop",async function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            dragndrop.removeClass("dragging");
+            let files = e.originalEvent.dataTransfer.files;
+            for(let i = 0;i < files.length;i++){
+                //read text
+                let reader = new FileReader();
+                reader.readAsText(files[i]);
+                reader.onload = function () {
+                    //read as text
+                    let text = reader.result;
+                    // remove dragndrop
+                    gsap.fromTo(appendable, {opacity: 1,y:0}, {opacity: 0,y:100, duration: 0.2, ease: "power2.out",onComplete:()=>{appendable.remove();}});
+                    resolve(text);
+                }
+            }
+        });
+    });
+    
+}
 async function showStudysets(){
     $(".c").html(`<section>
-    <div class="flex-opposite nav"><h1 class="glow">Your studysets</h1><button class="glowbox" id="createstudyset">+ Add</button></div>
+    <div class="flex-opposite nav"><h1 class="glow">Your studysets</h1><div><button class="glowbox" id="createstudyset">+ Add</button><button class="glowbox" id="importstudyset">Import</button></div></div>
     <div class="card-list"></div>
 </section>`);
     showLoaderAtElement($(".card-list")[0]);
     const studysets = await getDocs(collection(db, "studysets"));
     removeAllLoaders();
-    studysets.forEach((doc) => {
-        let studyset = doc.data();
-        let el = $(`
-        <div class="card studyset">
-            <div class="card-item" style="width:100%"><div class="pill" style="background:${studyset.background}"></div></div>
-            <div class="card-item"><span class="title">${studyset.name}</span></div>
-            <div class="card-item"><span class="description">${Object.keys(studyset.flashcards).length} Flashcards</span></div>
-        </div>`)[0];
-        $("section > .card-list").append(el);
-        $(el).click(function(){
-            studySet = studyset;
-            flashcards = studyset.flashcards;
-            studySetID = doc.id;
-            currentPage = "createstudyset";
-            updatePage();
-        });
+    studysets.forEach((DOC) => {
+        try{
+            let studyset = DOC.data();
+            let el = $(`
+            <div class="card studyset">
+                <div class="options-c">
+                    <div class="options">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+                <div class="context-menu-c hidden">
+                    <div class="entry delete-entry">Delete</div>
+                    <div class="entry share-entry">Share</div>
+                </div>
+                <div class="card-item" style="width:100%"><div class="pill" style="background:${studyset.background}"></div></div>
+                <div class="card-item"><span class="title">${studyset.name}</span></div>
+                <div class="card-item"><span class="description">${Object.keys(studyset.flashcards).length} Flashcards</span></div>
+            </div>`)[0];
+            $("section > .card-list").append(el);
+            let open = false;
+            $(el).find(".options-c").click(function(){
+                open = !open;
+                if(open){
+                    $(el).find(".context-menu-c").removeClass("hidden");
+                    gsap.fromTo($(el).find(".context-menu-c"), {opacity: 0}, {opacity: 1, duration: 0.2, ease: "power2.out"});
+                }else{
+                    gsap.fromTo($(el).find(".context-menu-c"), {opacity: 1}, {opacity: 0, duration: 0.2, ease: "power2.out",onComplete:()=>{$(el).find(".context-menu-c").addClass("hidden");}});
+                }
+            });
+            $(el).find(".delete-entry").click(async function(){
+                showLoaderAtElement(el,true);
+                //remove studyset from db
+                await deleteDoc(doc(db, "studysets", DOC.id));
+                //remove progress from db
+                await deleteDoc(doc(db, "progress", DOC.id));
+                //remove progress_flashcards from db
+                await deleteDoc(doc(db, "progress_flashcards", DOC.id));
+                removeAllLoaders();
+                //remove studyset from page
+                gsap.to(el,{duration:0.5,ease:"power2.out",opacity:0,height:0,onComplete:()=>{el.remove();}});
+            });
+            $(el).find(".share-entry").click(async function(){
+                //download studyset
+                let text = JSON.stringify(studyset);
+                let blob = new Blob([text], {type: "application/json"});
+                let url = URL.createObjectURL(blob);
+                let a = document.createElement("a");
+                a.href = url;
+                a.download = studyset.name+".deck";
+                a.click();
+                open = false;
+                gsap.fromTo($(el).find(".context-menu-c"), {opacity: 1}, {opacity: 0, duration: 0.2, ease: "power2.out",onComplete:()=>{$(el).find(".context-menu-c").addClass("hidden");}});
+                
+            });
+            $(el).find(".card-item").click(function(){
+                studySet = studyset;
+                flashcards = studyset.flashcards;
+                studySetID = DOC.id;
+                currentPage = "createstudyset";
+                updatePage();
+            });
+        }catch(e){
+            showError(e);
+            console.log(e);
+            return;
+        }
     });
     $("#createstudyset").click(function(){
         openModal("Create Studyset",$(`<div class="card-item"><input type="text" placeholder="Name" id="studysetname"></div><div class="card-item input-color-c"><input type="color" id="studysetcolor" value="#627aca"></div>`),$(`<button class="active big">OK</button>`)[0]);
@@ -264,6 +359,26 @@ async function showStudysets(){
             currentPage = "createstudyset";
             updatePage();
         });
+    });
+    $("#importstudyset").click(async function(){
+        let text = await openDragNDropImport($("section")[0]);
+        let set = {};
+        try{
+            set = JSON.parse(text);
+            console.log(set);
+            if(set.name == undefined || set.background == undefined || set.flashcards == undefined){
+                showError("Invalid Flashcard Structure");
+                return;
+            }else{
+                showLoaderAtElement($("body")[0],true);
+                let docRef = await addDoc(collection(db, "studysets"), set);
+                updatePage();
+                removeAllLoaders();
+            }
+        }catch(error){
+            showError("Invalid JSON");
+            return;
+        }
     });
 }
 let flashcards = {"1":{front:"Front",back:"Back"}};
@@ -308,13 +423,13 @@ async function showCreateStudyset(){
                     <div class="card-item texteditor being-edited fronteditor">
                         <div class="wysiwyg">
                             <div class="background"></div>
-                            <div class="virtual" contenteditable="true" spellcheck="false">Front</div>
+                            <div class="virtual" contenteditable="true" spellcheck="false"></div>
                         </div>
                     </div>
                     <div class="card-item texteditor being-edited mtop backeditor">
                         <div class="wysiwyg">
                             <div class="background"></div>
-                            <div class="virtual" contenteditable="true" spellcheck="false">Back</div>
+                            <div class="virtual" contenteditable="true" spellcheck="false"></div>
                         </div>
                     </div>
                     <div class="card-item hidden" id="saveflashcardbutton">
@@ -415,6 +530,7 @@ async function showCreateStudyset(){
         $(".fronteditor .virtual, .backeditor .virtual").html("");
         saveStudySet();
     });
+    $("body").get(0).style.setProperty("--cardlist-height", String($(".cardlist").height())+"px");
 }
 let studyProgress = {};
 let mode = "spacedrepetition";
@@ -459,7 +575,7 @@ async function getProgressFlashcards(){
         return false;
     }
 }
-async function showLoaderAtElement(el){
+async function showLoaderAtElement(el,noopacityanim = false){
     let uuid = "_"+Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     let appendable = $(`<div class="loader-c" id="loader${uuid}"><div class="loader"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>`)[0];
     //position loader on top of element by appending it to body
@@ -470,6 +586,7 @@ async function showLoaderAtElement(el){
     $(appendable).css("width",String(rect.width)+"px");
     $(appendable).css("height",String(rect.height)+"px");
     gsap.fromTo(appendable, {opacity: 0}, {opacity: 1, duration: 0.5, ease: "power2.out"});
+    if(!noopacityanim)
     gsap.to(el,{opacity:0,duration:0.5,ease:"power2.out"});
     loaders.push(appendable);
     loadingElements.push(el);
@@ -862,6 +979,17 @@ async function showSpacedRepetition(){
     showFc();
     // console.log(currentCardKey)
 }
+async function saveProgressFlashcard(){
+    console.log("Saving...");
+    console.log(studyProgress);
+    if(studySetID == null){
+        console.log("ERROR: studySetID is null");
+    }else{
+        await updateDoc(doc(db, "progress_flashcards", studySetID), {flashcards:studyProgress});
+        console.log("Saved!");
+    }
+
+}
 async function showFlashcardStudyMode(){
     mode = "flashcards";
     let el = $(`
@@ -1004,7 +1132,7 @@ async function showFlashcardStudyMode(){
         console.log(currentCardKey,studyProgress,studyProgress[currentCardKey]);
         //animate progress bar
         await createProgressBar();
-        await saveProgress();
+        await saveProgressFlashcard();
         await showFc();
     });
 
@@ -1029,20 +1157,14 @@ async function showFlashcardStudyMode(){
         console.log(currentCardKey,studyProgress,studyProgress[currentCardKey]);
         //animate progress bar
         await createProgressBar();
-        await saveProgress();
+        await saveProgressFlashcard();
         await showFc();
     });
 
     $(".studying .buttons .destroy").click(async function(){ //Hard
         flipped = false;
         //update progress
-        if(studyProgress[currentCardKey].status == -1){
-            studyProgress[currentCardKey].status = 0;
-        }else if(studyProgress[currentCardKey].status == 0){
-            studyProgress[currentCardKey].status = 0;
-        }else if(studyProgress[currentCardKey].status == 1){
-            studyProgress[currentCardKey].status = 0;
-        }
+        studyProgress[currentCardKey].status = 0;
         //update currentCardKey
         let keys = Object.keys(studyProgress);
         let currentIndex = keys.indexOf(currentCardKey);
@@ -1054,7 +1176,7 @@ async function showFlashcardStudyMode(){
         console.log(currentCardKey,studyProgress,studyProgress[currentCardKey]);
         //animate progress bar
         await createProgressBar();
-        await saveProgress();
+        await saveProgressFlashcard();
         await showFc();
     });
 }
