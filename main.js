@@ -24,9 +24,9 @@ function connectToDB(){
     
 }
 async function openModal(title, body, footer){
-    $(".modal-c .modal .1 span,.modal-c .modal .2,.modal-c .modal .3").empty();
+    $(".modal-c .modal .1 span,.modal-c .modal ._2,.modal-c .modal .3").empty();
     $(".modal-c .modal .1 span").append(title);
-    $(".modal-c .modal .2").append(body);
+    $(".modal-c .modal ._2").append(body);
     $(".modal-c .modal .3").append(footer);
     $(".modal-c").removeClass("hidden");
     gsap.fromTo(".modal-c", {opacity: 0}, {opacity: 1, duration: 0.5, ease: "power2.out"});
@@ -268,7 +268,7 @@ async function openDragNDropImport(){
     
 }
 async function showStudysets(){
-    $(".c").html(`<section>
+    $(".c").html(`<section class="homepage">
     <div class="flex-opposite nav"><h1 class="glow">Your studysets</h1><div><button class="glowbox" id="createstudyset">+ Add</button><button class="glowbox" id="importstudyset">Import</button></div></div>
     <div class="card-list"></div>
 </section>`);
@@ -288,8 +288,9 @@ async function showStudysets(){
                     </div>
                 </div>
                 <div class="context-menu-c hidden">
-                    <div class="entry delete-entry">Delete</div>
-                    <div class="entry share-entry">Share</div>
+                    <div class="entry export-entry">Export</div>
+                    <div class="entry share-entry">Share Link</div>
+                    <div class="entry delete-entry destroy">Delete</div>
                 </div>
                 <div class="card-item" style="width:100%"><div class="pill" style="background:${studyset.background}"></div></div>
                 <div class="card-item"><span class="title">${studyset.name}</span></div>
@@ -306,9 +307,9 @@ async function showStudysets(){
                     gsap.fromTo($(el).find(".context-menu-c"), {opacity: 1}, {opacity: 0, duration: 0.2, ease: "power2.out",onComplete:()=>{$(el).find(".context-menu-c").addClass("hidden");}});
                 }
             });
-            $(el).find(".delete-entry").click(async function(){
+            const deleteMe = async function(){
                 showLoaderAtElement(el,true);
-                //remove studyset from db
+                // remove studyset from db
                 await deleteDoc(doc(db, "studysets", DOC.id));
                 //remove progress from db
                 await deleteDoc(doc(db, "progress", DOC.id));
@@ -316,9 +317,47 @@ async function showStudysets(){
                 await deleteDoc(doc(db, "progress_flashcards", DOC.id));
                 removeAllLoaders();
                 //remove studyset from page
-                gsap.to(el,{duration:0.5,ease:"power2.out",opacity:0,height:0,onComplete:()=>{el.remove();}});
+                let rects = [];
+                let foundElementYet = false;
+                let padding = 50;
+                //if screen width 
+                if($(window).width() <= 767){
+                    padding = 20;
+                }
+                let tl = gsap.timeline({onComplete:()=>{
+                    $(el).remove();
+                    $(".card-list .card").each(function(i){
+                        gsap.set(this,{x:0,y:0,width:rects[i].width-padding,height:rects[i].height-padding})
+                    });
+                    updatePage();
+                }});
+                tl.to(el,{duration:1,ease:"power2.out",opacity:0,onUpdate:()=>{
+                    gsap.set(el,{filter:"blur("+(tl.progress())*10+"px)",transform:"scale("+((tl.progress()/6)+1)+")"});
+                }},"<");
+                // tl.to(el,{duration:0},"<-=0.4");
+                $(".card-list .card").each(function(i){
+                    // console.log(i)
+                    let rect = this.getBoundingClientRect();
+                    rects.push({top:rect.top,left:rect.left,width:rect.width,height:rect.height});
+                    if(foundElementYet){
+                        tl.to(this,{duration:0.7,ease:"power2.out",x:rects[i-1].left-rect.left,y:rects[i-1].top-rect.top,width:rects[i-1].width-padding,height:rects[i-1].height-padding},"<+=0.05");
+                    }
+                    if(this.isEqualNode(el)) foundElementYet = true;
+                });
+            };
+            $(el).find(".delete-entry").click(()=>{
+                //are you sure
+                openModal("Are you sure?","<span>This action is irreversible.</span>",`<button class="destroy big nozoom">Yes</button><button class="big ok nozoom">No</button>`);
+                $(".modal-c .modal .3 button").click(function(){
+                    if($(this).hasClass("destroy")){
+                        deleteMe();
+                        closeModal();
+                    }else{
+                        closeModal();
+                    }
+                });
             });
-            $(el).find(".share-entry").click(async function(){
+            $(el).find(".export-entry").click(async function(){
                 //download studyset
                 let text = JSON.stringify(studyset);
                 let blob = new Blob([text], {type: "application/json"});
@@ -329,7 +368,16 @@ async function showStudysets(){
                 a.click();
                 open = false;
                 gsap.fromTo($(el).find(".context-menu-c"), {opacity: 1}, {opacity: 0, duration: 0.2, ease: "power2.out",onComplete:()=>{$(el).find(".context-menu-c").addClass("hidden");}});
-                
+            });
+            $(el).find(".share-entry").click(async function(){
+                //share studyset
+                let text = JSON.stringify(studyset);
+                openModal("Copy Link",$(`<div class="card-item"><input type="text" value="${window.location.href.split("?")[0]}?import=${encodeURIComponent(text)}" readonly style="overflow-x:shown"></div>`),$(`<button class="active big">OK</button>`)[0]);
+                $(".modal-c .modal .3 button").click(function(){
+                    closeModal();
+                });
+                open = false;
+                gsap.fromTo($(el).find(".context-menu-c"), {opacity: 1}, {opacity: 0, duration: 0.2, ease: "power2.out",onComplete:()=>{$(el).find(".context-menu-c").addClass("hidden");}});
             });
             $(el).find(".card-item").click(function(){
                 studySet = studyset;
@@ -380,6 +428,8 @@ async function showStudysets(){
             return;
         }
     });
+    //set css variable
+    $("body").get(0).style.setProperty("--nav-height", String($(".nav").height())+"px");
 }
 let flashcards = {"1":{front:"Front",back:"Back"}};
 let studySet = {name:"Math",background:"#8fad79"};
@@ -1205,7 +1255,36 @@ async function updatePage(){
     }
 
 }
+async function importStudySetFromURL(url){
+    // console.log(url)
+    try{
+        let set = JSON.parse(url);
+        console.log(set);
+        if(set.name == undefined || set.background == undefined || set.flashcards == undefined){
+            showError("Invalid Flashcard Structure");
+            return;
+        }else{
+            showLoaderAtElement($("body")[0],true);
+            let docRef = await addDoc(collection(db, "studysets"), set);
+            //remove from url
+            let url = new URL(window.location.href);
+            url.searchParams.delete("import");
+            window.history.replaceState({}, document.title, url);
+            removeAllLoaders();
+        }
+    }catch(e){
+        showError(e);
+        console.log(e);
+        return;
+    }
+}
 async function startApp(){
+    //check if url is import url
+    let url = new URL(window.location.href);
+    let importUrl = url.searchParams.get("import");
+    if(importUrl != null){
+        await importStudySetFromURL(importUrl);
+    }
     updatePage();
     // showCreateStudyset();
 }
@@ -1224,7 +1303,7 @@ $(document).ready(async function () {
         $(".modal-c .modal .3 button").click(function(){
             try{
                 // firebaseConfig = JSON.parse($(".modal-c .modal .2 textarea").val());
-                eval(`window.firebaseConfig = ${$(".modal-c .modal .2 textarea").val()}`);
+                eval(`window.firebaseConfig = ${$(".modal-c .modal ._2 textarea").val()}`);
                 localStorage.setItem("db_id",JSON.stringify(window.firebaseConfig));
                 connectToDB();
                 $(".modal-c").addClass("hidden");

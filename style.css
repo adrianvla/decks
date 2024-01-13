@@ -94,6 +94,9 @@ body{
     background:var(--bg2);
 
 }
+.modal ._2{
+    font-size:2rem;
+}
 .card-item{
     display:flex;
     justify-content:center;
@@ -236,9 +239,16 @@ h1{
 }
 .card-list{
     display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap:20px;
     padding:20px;
+    overflow:auto;
+    height:calc(100vh - 40px);
+    max-height:calc(100vh - 75px - var(--nav-height));
+    position: relative;
+}
+section.homepage{
+    overflow-y:hidden;
 }
 .studyset{
     display:flex;
@@ -248,6 +258,7 @@ h1{
     padding:25px;
     cursor: pointer;
     user-select: none;
+    max-height:200px;
 }
 
 .studyset .title{
@@ -1097,6 +1108,7 @@ section.studying .buttons{
         height:100%;
         padding:0;
         border-radius:0;
+        justify-content: center;
     }
     .title{
         font-size:2.5rem;
