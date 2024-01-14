@@ -12,7 +12,7 @@ function connectToDB(){
     try{
         showPopup("Loading...","Please wait...","loading",false);
         app = initializeApp(window.firebaseConfig);
-        analytics = getAnalytics(app);
+        // analytics = getAnalytics(app);
         db = getFirestore();
         closePopup();
         startApp();
@@ -1299,7 +1299,11 @@ $(document).ready(async function () {
         window.firebaseConfig = JSON.parse(localStorage.getItem("db_id"));
         connectToDB();
     }else{
-        await openModal("Enter your database json",$(`<textarea></textarea>`)[0],$(`<button class="active big">OK</button>`)[0]);
+        await openModal("<div class='inline-flex'>Enter your database json<button class='help'>?</button></div>",$(`<textarea></textarea>`)[0],$(`<button class="active big">OK</button>`)[0]);
+        $(".help").click(()=>{
+            //open new page
+            window.open("/help","_blank");
+        });
         $(".modal-c .modal .3 button").click(function(){
             try{
                 // firebaseConfig = JSON.parse($(".modal-c .modal .2 textarea").val());
@@ -1314,21 +1318,3 @@ $(document).ready(async function () {
         });
     }
 });
-
-/*{
-
-    apiKey: "AIzaSyD9lNLrK4D9xaRkOuu7J7yoLiFUz677ZlI",
-
-    authDomain: "cards-c322e.firebaseapp.com",
-
-    projectId: "cards-c322e",
-
-    storageBucket: "cards-c322e.appspot.com",
-
-    messagingSenderId: "887402756734",
-
-    appId: "1:887402756734:web:1ba67d657db0a986a1762f",
-
-    measurementId: "G-Y3D3F5LDS7"
-
-  } */
