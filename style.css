@@ -362,7 +362,7 @@ section.homepage{
 }
 .flashcard{
     width:calc(100% - 52px);
-    max-width:33vw;
+    /* max-width:33vw; */
     font-family:'Telegraf Regular', sans-serif;
     font-size:2rem;
     min-height:100px;
@@ -405,7 +405,6 @@ section.homepage{
 }
 .side-preview img{
     width:100%;
-    height:100%;
     object-fit: cover;
     border-radius: 12px;
     border: 1px solid var(--border);
@@ -697,6 +696,7 @@ textarea:focus, input:focus, textarea:active, input:active{
     transition: all 0.2s ease-in-out, height 0 linear;
     /* z-index:5; */
     background:#00000000 !important;
+    overflow-y:auto;
 }
 .wysiwyg *::selection{
     background:var(--active);
