@@ -698,6 +698,9 @@ textarea:focus, input:focus, textarea:active, input:active{
     background:#00000000 !important;
     overflow-y:auto;
 }
+.virtual img{
+    width:100%;
+}
 .wysiwyg *::selection{
     background:var(--active);
     color:var(--text);
@@ -808,6 +811,35 @@ strike{
     position:relative;
     z-index: 10;
 }
+.dragndrop .pill{
+    position:absolute;
+    height:15px;
+    background:var(--bg2trans);
+    box-shadow:var(--shadow);
+    border-radius:100px;
+    bottom:4rem;
+    width:33%;
+    overflow:hidden;
+}
+body{
+    --dragndrop-progress:0;
+}
+.dragndrop .pill::before{
+    content: "";
+    position:absolute;
+    width:100%;
+    height:100%;
+    background:var(--active);
+    /* border-radius:100px; */
+    bottom:0;
+    left:0;
+    right:0;
+    top:0;
+    transform:scaleX(var(--dragndrop-progress));
+    z-index:9999;
+    transform-origin: left;
+    transition:transform 0.2s ease-in-out;
+}
 
 .dragndrop > div > span{
     position:absolute;
@@ -829,6 +861,7 @@ strike{
     border-radius:25px;
     background:var(--text);
     transform:rotate(90deg);
+    /* max-width:500px; */
 }
 .dragndrop > div > .plus-icon > ._2{
     position:absolute;
@@ -838,6 +871,7 @@ strike{
     height:10px;
     border-radius:25px;
     background:var(--text);
+    /* max-width:500px; */
 }
 
 .mtop{

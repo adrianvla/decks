@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebas
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-analytics.js";
 import { getFirestore, getDocs, collection, getDoc, doc, setDoc, updateDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
 import { onAuthStateChanged, signOut, GoogleAuthProvider, useDeviceLanguage, signInWithPopup, getAuth } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-storage.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-storage.js";
 
 
 let app = null, analytics = null, db = null, auth = null, storage = null,firebaseConfig = null;
@@ -13,6 +13,8 @@ function connectToDB(){
         showPopup("Loading...","Please wait...","loading",false);
         app = initializeApp(window.firebaseConfig);
         // analytics = getAnalytics(app);
+        storage = getStorage(app);
+        // console.log(storage)
         db = getFirestore();
         closePopup();
         startApp();
@@ -79,7 +81,7 @@ function getSelectionCoords(atStart) {
 async function openDragNDrop(el,el2){
     return new Promise((resolve,reject)=>{
         let uuid = "_"+Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-        let appendable = $(`<div class="dragndrop" id="dragndrop${uuid}"><div><div class="plus-icon"><div class="_1"></div><div class="_2"></div></div><span>Drop Files Here</span></div></div>`)[0];
+        let appendable = $(`<div class="dragndrop" id="dragndrop${uuid}"><div><div class="plus-icon"><div class="_1"></div><div class="_2"></div></div><div class="pill hidden"></div><span>Drop Files Here</span></div></div>`)[0];
         gsap.fromTo(appendable, {opacity: 0,y:100}, {opacity: 1,y:0, duration: 0.2, ease: "power2.out"});
 
         $("body").append(appendable);
@@ -104,20 +106,68 @@ async function openDragNDrop(el,el2){
             dragndrop.removeClass("dragging");
             let files = e.originalEvent.dataTransfer.files;
             let imageEl = null;
+            // $("#dragndrop"+uuid+" span").addClass("hidden");
+            $("#dragndrop"+uuid+" .pill").removeClass("hidden");
             for(let i = 0;i < files.length;i++){
                 //to base64
-                let reader = new FileReader();
-                reader.readAsDataURL(files[i]);
-                reader.onload = async function () {
-                    //read as base64
-                    let base64 = reader.result;
-                    // append
-                    imageEl = $(`<img src="${base64}" alt="Image">`)[0];
-                    el2.find(".virtual").append(imageEl);
-                    // remove dragndrop
-                    gsap.fromTo(appendable, {opacity: 1,y:0}, {opacity: 0,y:100, duration: 0.2, ease: "power2.out",onComplete:()=>{appendable.remove();}});
-                    imageEl.onload = resolve;
-                };
+                // let reader = new FileReader();
+                // reader.readAsDataURL(files[i]);
+                // reader.onload = async function () {
+                //     //read as base64
+                //     let base64 = reader.result;
+                //     // append
+                //     imageEl = $(`<img src="${base64}" alt="Image">`)[0];
+                //     el2.find(".virtual").append(imageEl);
+                //     // remove dragndrop
+                //     gsap.fromTo(appendable, {opacity: 1,y:0}, {opacity: 0,y:100, duration: 0.2, ease: "power2.out",onComplete:()=>{appendable.remove();}});
+                //     imageEl.onload = resolve;
+                // };
+                //to blob
+                let blob = files[i];
+                console.log(blob)
+
+                //upload to firebase
+                let storageRef = ref(storage, 'images/'+uuid+"_"+blob.name.replaceAll(" ","_"));
+                let uploadTask = uploadBytesResumable(storageRef, blob);
+                uploadTask.on('state_changed', (snapshot) => {
+                    // Observe state change events such as progress, pause, and resume
+                    // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                    // console.log('Upload is ' + progress + '% done');
+                    //animate progress bar by changing body variable
+                    //change css variable
+                    $("body").get(0).style.setProperty("--dragndrop-progress", String((snapshot.bytesTransferred / snapshot.totalBytes)));
+
+                    $("#dragndrop"+uuid+" span").text("Uploading... "+Math.round((snapshot.bytesTransferred / snapshot.totalBytes)*100)+"%");
+
+
+                    switch (snapshot.state) {
+                        case 'paused':
+                        console.log('Upload is paused');
+                        break;
+                        case 'running':
+                        console.log('Upload is running');
+                        break;
+                    }
+                    }
+                , (error) => {
+                    // Handle unsuccessful uploads
+                    console.log(error);
+                    showError(error);
+                    reject(error);
+                }
+                , () => {
+                    // Handle successful uploads on complete
+                    // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                        console.log('File available at', downloadURL);
+                        imageEl = $(`<img src="${downloadURL}" alt="Image">`)[0];
+                        el2.find(".virtual").append(imageEl);
+                        // remove dragndrop
+                        gsap.fromTo(appendable, {opacity: 1,y:0}, {opacity: 0,y:100, duration: 0.2, ease: "power2.out",onComplete:()=>{appendable.remove();}});
+                        imageEl.onload = resolve;
+                    });
+                }
+                );
             }
         });
     });
