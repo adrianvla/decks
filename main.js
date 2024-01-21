@@ -1299,7 +1299,7 @@ $(document).ready(async function () {
         window.firebaseConfig = JSON.parse(localStorage.getItem("db_id"));
         connectToDB();
     }else{
-        await openModal("<div class='inline-flex'>Enter your database json<button class='help'>?</button></div>",$(`<textarea></textarea>`)[0],$(`<button class="active big">OK</button>`)[0]);
+        await openModal("<div class='inline-flex'>Enter your database json<button class='help nozoom'>?</button></div>",$(`<textarea></textarea>`)[0],$(`<button class="active big">OK</button>`)[0]);
         $(".help").click(()=>{
             //open new page
             window.open("/help","_blank");
