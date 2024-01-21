@@ -428,7 +428,7 @@ async function showStudysets(){
             return;
         }
     });
-    $("#logoutbutton").click(()={
+    $("#logoutbutton").click(()=>{
         localStorage.removeItem("db_id");
         window.location.reload();
     });
