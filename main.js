@@ -269,7 +269,7 @@ async function openDragNDropImport(){
 }
 async function showStudysets(){
     $(".c").html(`<section class="homepage">
-    <div class="flex-opposite nav"><h1 class="glow">Your studysets</h1><div><button class="glowbox" id="createstudyset">+ Add</button><button class="glowbox" id="importstudyset">Import</button></div></div>
+    <div class="flex-opposite nav"><h1 class="glow">Your studysets</h1><div><button class="glowbox" id="createstudyset">+ Add</button><button class="glowbox" id="importstudyset">Import</button><button class="glowbox" id="logoutbutton">Logout</button></div></div>
     <div class="card-list"></div>
 </section>`);
     showLoaderAtElement($(".card-list")[0]);
@@ -427,6 +427,10 @@ async function showStudysets(){
             showError("Invalid JSON");
             return;
         }
+    });
+    $("#logoutbutton").click(()={
+        localStorage.removeItem("db_id");
+        window.location.reload();
     });
     //set css variable
     $("body").get(0).style.setProperty("--nav-height", String($(".nav").height())+"px");
