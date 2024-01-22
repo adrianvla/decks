@@ -1258,6 +1258,7 @@ async function showFlashcardStudyMode(){
         await showFc();
     };
     const OkFlip = async function(){ //OK
+        console.log("OK");
         flipped = false;
         //update progress
         if(studyProgress[currentCardKey].status == -1){
@@ -1265,6 +1266,8 @@ async function showFlashcardStudyMode(){
         }else if(studyProgress[currentCardKey].status == 0){
             studyProgress[currentCardKey].status = 1;
         }else if(studyProgress[currentCardKey].status == 1){
+            studyProgress[currentCardKey].status = 1;
+        }else if(studyProgress[currentCardKey].status == 2){
             studyProgress[currentCardKey].status = 1;
         }
         //update currentCardKey
