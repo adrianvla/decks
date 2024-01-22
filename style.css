@@ -259,6 +259,7 @@ section.homepage{
     cursor: pointer;
     user-select: none;
     max-height:200px;
+    position: relative;
 }
 
 .studyset .title{
@@ -1090,6 +1091,9 @@ body{
     font-size:2rem;
 }
 
+.card-side img{
+    width:100%;
+}
 section.studying{
     height:100%;
     display:flex;
@@ -1463,6 +1467,7 @@ section.help_page .step{
     color:var(--text);
     padding-left:10px;
     max-width:calc(100vw - 42px);
+    position: relative;
 }
 section.help_page .steps{
     display: grid;
