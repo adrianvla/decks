@@ -745,6 +745,17 @@ async function partitionIntoBoxes(f){
     }
     return boxes;
 }
+let BoundFunctionsToKeys = [];
+function bindKey(...args){
+    $(document).bind(...args);
+    BoundFunctionsToKeys.push([args[0],args[args.length-1]]);
+}
+async function unBindAllKeys(){
+    for(let i = 0;i<BoundFunctionsToKeys.length;i++){
+        $(document).unbind(...BoundFunctionsToKeys[i]);
+    }
+    BoundFunctionsToKeys = [];
+}
 async function showSpacedRepetition(){
     let el = $(`<section class="studying">
     <div class="progress-c">
@@ -840,21 +851,22 @@ async function showSpacedRepetition(){
     await createProgressBar();
     let currentCardKey = studyProgress[0][0].id;
     let flipped = false;
-    $(".studying .deck .card").click(function(){
+    const FlipCard = function(te=this){
         //flip card
         flipped = !flipped;
         if(flipped){
             let tl = gsap.timeline();
-            tl.fromTo($(this),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
-            tl.call(()=>{$(this).find(".card-side").html(studySet.flashcards[currentCardKey].back)});
-            tl.fromTo($(this),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
+            tl.fromTo($(te),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
+            tl.call(()=>{$(te).find(".card-side").html(studySet.flashcards[currentCardKey].back)});
+            tl.fromTo($(te),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
         }else{
             let tl = gsap.timeline();
-            tl.fromTo($(this),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
-            tl.call(()=>{$(this).find(".card-side").html(studySet.flashcards[currentCardKey].front)});
-            tl.fromTo($(this),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
+            tl.fromTo($(te),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
+            tl.call(()=>{$(te).find(".card-side").html(studySet.flashcards[currentCardKey].front)});
+            tl.fromTo($(te),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
         }
-    });
+    }
+    $(".studying .deck .card").click(function(){FlipCard(this)});
     async function showFc(){
         $(".studying .deck .card").find(".card-side").html(studySet.flashcards[currentCardKey].front);
     }
@@ -886,7 +898,7 @@ async function showSpacedRepetition(){
         }
         return false;
     }
-    $(".studying .buttons .ok").click(async function(){ //EASY
+    const EasyFlip = async function(){ //EASY
         flipped = false;
         //move flashcard to the back of studyProgress
         let splicePos = 0;
@@ -955,9 +967,8 @@ async function showSpacedRepetition(){
         if(await nextBoxCheck(_cardsStillNotPerfect)) return;
         await saveProgress();
         await showFc();
-    });
-
-    $(".studying .buttons .warning").click(async function(){ //OK
+    };
+    const OkFlip = async function(){ //OK
         flipped = false;
         //move flashcard to the back of studyProgress
         let splicePos = 0;
@@ -1012,9 +1023,8 @@ async function showSpacedRepetition(){
         if(await nextBoxCheck(_cardsStillNotPerfect)) return;
         await saveProgress();
         await showFc();
-    });
-
-    $(".studying .buttons .destroy").click(async function(){ //Hard
+    };
+    const HardFlip = async function(){ //Hard
         flipped = false;
         //update progress
         studyProgress[currentBox][0].status = 0;
@@ -1079,8 +1089,17 @@ async function showSpacedRepetition(){
         if(await nextBoxCheck(_cardsStillNotPerfect)) return;
         await saveProgress();
         await showFc();
-    });
+    };
+    $(".studying .buttons .ok").click(EasyFlip);
+
+    $(".studying .buttons .warning").click(OkFlip);
+
+    $(".studying .buttons .destroy").click(HardFlip);
     showFc();
+    bindKey('keydown','space',()=>{FlipCard($(".studying .deck .card")[0]);});
+    bindKey('keydown','1',EasyFlip);
+    bindKey('keydown','2',OkFlip);
+    bindKey('keydown','3',HardFlip);
     // console.log(currentCardKey)
 }
 async function saveProgressFlashcard(){
@@ -1195,27 +1214,26 @@ async function showFlashcardStudyMode(){
     let flipped = false;
     showFc();
     removeAllLoaders();
-
-    $(".studying .deck .card").click(function(){
+    const FlipCard = function(te=this){
         //flip card
         flipped = !flipped;
         if(flipped){
             let tl = gsap.timeline();
-            tl.fromTo($(this),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
-            tl.call(()=>{$(this).find(".card-side").html(studySet.flashcards[currentCardKey].back)});
-            tl.fromTo($(this),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
+            tl.fromTo($(te),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
+            tl.call(()=>{$(te).find(".card-side").html(studySet.flashcards[currentCardKey].back)});
+            tl.fromTo($(te),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
         }else{
             let tl = gsap.timeline();
-            tl.fromTo($(this),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
-            tl.call(()=>{$(this).find(".card-side").html(studySet.flashcards[currentCardKey].front)});
-            tl.fromTo($(this),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
+            tl.fromTo($(te),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
+            tl.call(()=>{$(te).find(".card-side").html(studySet.flashcards[currentCardKey].front)});
+            tl.fromTo($(te),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
         }
-    });
+    };
+    $(".studying .deck .card").click(function(){FlipCard(this)});
     async function showFc(){
         $(".studying .deck .card").find(".card-side").html(studySet.flashcards[currentCardKey].front);
     }
-
-    $(".studying .buttons .ok").click(async function(){ //Easy
+    const EasyFlip = async function(){ //Easy
         flipped = false;
         //update progress
         if(studyProgress[currentCardKey].status == -1){
@@ -1238,9 +1256,8 @@ async function showFlashcardStudyMode(){
         await createProgressBar();
         await saveProgressFlashcard();
         await showFc();
-    });
-
-    $(".studying .buttons .warning").click(async function(){ //OK
+    };
+    const OkFlip = async function(){ //OK
         flipped = false;
         //update progress
         if(studyProgress[currentCardKey].status == -1){
@@ -1263,9 +1280,8 @@ async function showFlashcardStudyMode(){
         await createProgressBar();
         await saveProgressFlashcard();
         await showFc();
-    });
-
-    $(".studying .buttons .destroy").click(async function(){ //Hard
+    };
+    const HardFlip = async function(){ //Hard
         flipped = false;
         //update progress
         studyProgress[currentCardKey].status = 0;
@@ -1282,11 +1298,22 @@ async function showFlashcardStudyMode(){
         await createProgressBar();
         await saveProgressFlashcard();
         await showFc();
-    });
+    };
+
+    $(".studying .buttons .ok").click(EasyFlip);
+
+    $(".studying .buttons .warning").click(OkFlip);
+
+    $(".studying .buttons .destroy").click(HardFlip);
+    bindKey('keydown','space',()=>{FlipCard($(".studying .deck .card")[0]);});
+    bindKey('keydown','1',EasyFlip);
+    bindKey('keydown','2',OkFlip);
+    bindKey('keydown','3',HardFlip);
 }
 
 let currentPage = "home";
 async function updatePage(){
+    unBindAllKeys();
     switch(currentPage){
         case "home":
             showStudysets();
