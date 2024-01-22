@@ -1097,9 +1097,9 @@ async function showSpacedRepetition(){
     $(".studying .buttons .destroy").click(HardFlip);
     showFc();
     bindKey('keydown','space',()=>{FlipCard($(".studying .deck .card")[0]);});
-    bindKey('keydown','1',EasyFlip);
+    bindKey('keydown','3',EasyFlip);
     bindKey('keydown','2',OkFlip);
-    bindKey('keydown','3',HardFlip);
+    bindKey('keydown','1',HardFlip);
     // console.log(currentCardKey)
 }
 async function saveProgressFlashcard(){
@@ -1306,9 +1306,9 @@ async function showFlashcardStudyMode(){
 
     $(".studying .buttons .destroy").click(HardFlip);
     bindKey('keydown','space',()=>{FlipCard($(".studying .deck .card")[0]);});
-    bindKey('keydown','1',EasyFlip);
+    bindKey('keydown','3',EasyFlip);
     bindKey('keydown','2',OkFlip);
-    bindKey('keydown','3',HardFlip);
+    bindKey('keydown','1',HardFlip);
 }
 
 let currentPage = "home";
