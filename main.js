@@ -633,6 +633,7 @@ async function showCreateStudyset(){
         registerFlashcard(newUUID);
         $(".fronteditor .virtual, .backeditor .virtual").html("");
         saveStudySet();
+        MathJax.typeset();
     });
     $("body").get(0).style.setProperty("--cardlist-height", String($(".cardlist").height())+"px");
     MathJax.typeset();
