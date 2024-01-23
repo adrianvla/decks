@@ -635,6 +635,7 @@ async function showCreateStudyset(){
         saveStudySet();
     });
     $("body").get(0).style.setProperty("--cardlist-height", String($(".cardlist").height())+"px");
+    MathJax.typeset();
 }
 let studyProgress = {};
 let mode = "spacedrepetition";
@@ -865,6 +866,9 @@ async function showSpacedRepetition(){
             tl.call(()=>{$(te).find(".card-side").html(studySet.flashcards[currentCardKey].front)});
             tl.fromTo($(te),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
         }
+        setTimeout(()=>{
+            MathJax.typeset();
+        },500);
     }
     $(".studying .deck .card").click(function(){FlipCard(this)});
     async function showFc(){
@@ -1100,6 +1104,7 @@ async function showSpacedRepetition(){
     bindKey('keydown','3',EasyFlip);
     bindKey('keydown','2',OkFlip);
     bindKey('keydown','1',HardFlip);
+    MathJax.typeset();
     // console.log(currentCardKey)
 }
 async function saveProgressFlashcard(){
@@ -1214,6 +1219,7 @@ async function showFlashcardStudyMode(){
     let flipped = false;
     showFc();
     removeAllLoaders();
+    MathJax.typeset();
     const FlipCard = function(te=this){
         //flip card
         flipped = !flipped;
@@ -1228,6 +1234,9 @@ async function showFlashcardStudyMode(){
             tl.call(()=>{$(te).find(".card-side").html(studySet.flashcards[currentCardKey].front)});
             tl.fromTo($(te),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
         }
+        setTimeout(()=>{
+            MathJax.typeset();
+        },500);
     };
     $(".studying .deck .card").click(function(){FlipCard(this)});
     async function showFc(){
