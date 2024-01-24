@@ -622,6 +622,7 @@ async function showCreateStudyset(){
         currentlyEditing = null;
         $(".fronteditor .virtual, .backeditor .virtual").html("");
         saveStudySet();
+        MathJax.typeset();
     });
 
     $(".addflashcard").click(function(){
