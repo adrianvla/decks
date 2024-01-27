@@ -1086,6 +1086,9 @@ body{
     overflow-y: auto;
     max-height:100%;
 }
+.deck .card img{
+    max-width:100vw;
+}
 .card-side{
     height:max-content;
     font-size:2rem;
