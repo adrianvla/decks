@@ -895,6 +895,8 @@ async function showSpacedRepetition(){
     $(".studying .deck .card").click(function(){FlipCard(this)});
     async function showFc(){
         $(".studying .deck .card").find(".card-side").html(studySet.flashcards[currentCardKey].front);
+        MathJax.typeset();
+        ScaleToFit();
     }
     async function finishDeck(){
         console.log("Finished");
@@ -1281,6 +1283,8 @@ async function showFlashcardStudyMode(){
     $(".studying .deck .card").click(function(){FlipCard(this)});
     async function showFc(){
         $(".studying .deck .card").find(".card-side").html(studySet.flashcards[currentCardKey].front);
+        MathJax.typeset();
+        ScaleToFit();
     }
     const EasyFlip = async function(){ //Easy
         flipped = false;
