@@ -1067,7 +1067,7 @@ body{
     display:flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    /* align-items: center; */
     gap:20px;
     border-radius: 12px;
     border: 1px solid var(--border);
@@ -1208,7 +1208,8 @@ section.studying .buttons{
     }
     .card-item{
         margin-inline:0;
-        width:100%;
+        /* width:100%; */
+        width:max-content;
         height:max-content;
     }
     .card-item button{
