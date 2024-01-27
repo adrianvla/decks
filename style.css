@@ -1087,7 +1087,7 @@ body{
     max-height:100%;
 }
 .deck .card img{
-    max-width:100vw;
+    max-width:calc(100vw - 40px);
 }
 .card-side{
     height:max-content;
