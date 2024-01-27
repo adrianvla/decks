@@ -854,22 +854,36 @@ async function showSpacedRepetition(){
     await createProgressBar();
     let currentCardKey = studyProgress[0][0].id;
     let flipped = false;
+    
+    const ScaleToFit = function(){
+        let el = $(".studying .deck .card");
+        let cardWidth = $(el).width();
+        let cardHeight = $(el).height();
+        let sideWidth = $(el).find(".card-side").width();
+        let sideHeight = $(el).find(".card-side").height();
+        // let scale = Math.min(cardWidth/sideWidth,cardHeight/sideHeight);
+        let scale = cardWidth/sideWidth;
+        console.log(scale)
+        scale = Math.min(scale,1);
+        $(el).find(".card-side").css("transform","scale("+String(scale)+")");
+    }
     const FlipCard = function(te=this){
         //flip card
         flipped = !flipped;
         if(flipped){
             let tl = gsap.timeline();
             tl.fromTo($(te),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
-            tl.call(()=>{$(te).find(".card-side").html(studySet.flashcards[currentCardKey].back)});
+            tl.call(()=>{$(te).find(".card-side").html(studySet.flashcards[currentCardKey].back);});
             tl.fromTo($(te),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
         }else{
             let tl = gsap.timeline();
             tl.fromTo($(te),{rotationY:0},{duration:0.2,ease:"power2.in",rotationY:90});
-            tl.call(()=>{$(te).find(".card-side").html(studySet.flashcards[currentCardKey].front)});
+            tl.call(()=>{$(te).find(".card-side").html(studySet.flashcards[currentCardKey].front);});
             tl.fromTo($(te),{rotationY:-90},{duration:0.3,ease:"power2.out",rotationY:0});
         }
         setTimeout(()=>{
             MathJax.typeset();
+            ScaleToFit();
         },300);
     }
     $(".studying .deck .card").click(function(){FlipCard(this)});
@@ -1222,6 +1236,18 @@ async function showFlashcardStudyMode(){
     showFc();
     removeAllLoaders();
     MathJax.typeset();
+    const ScaleToFit = function(){
+        let el = $(".studying .deck .card");
+        let cardWidth = $(el).width();
+        let cardHeight = $(el).height();
+        let sideWidth = $(el).find(".card-side").width();
+        let sideHeight = $(el).find(".card-side").height();
+        // let scale = Math.min(cardWidth/sideWidth,cardHeight/sideHeight);
+        let scale = cardWidth/sideWidth;
+        console.log(scale)
+        scale = Math.min(scale,1);
+        $(el).find(".card-side").css("transform","scale("+String(scale)+")");
+    }
     const FlipCard = function(te=this){
         //flip card
         flipped = !flipped;
@@ -1238,6 +1264,7 @@ async function showFlashcardStudyMode(){
         }
         setTimeout(()=>{
             MathJax.typeset();
+            ScaleToFit();
         },300);
     };
     $(".studying .deck .card").click(function(){FlipCard(this)});
