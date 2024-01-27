@@ -1208,12 +1208,14 @@ section.studying .buttons{
     }
     .card-item{
         margin-inline:0;
-        /* width:100%; */
-        width:max-content;
+        width:100%;
         height:max-content;
     }
     .card-item button{
         margin-bottom:0;
+    }
+    .deck .card .card-item{
+        width:max-content;
     }
 
     .back-btn-c{
