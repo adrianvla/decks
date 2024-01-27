@@ -870,7 +870,7 @@ async function showSpacedRepetition(){
         }
         setTimeout(()=>{
             MathJax.typeset();
-        },500);
+        },300);
     }
     $(".studying .deck .card").click(function(){FlipCard(this)});
     async function showFc(){
@@ -1238,7 +1238,7 @@ async function showFlashcardStudyMode(){
         }
         setTimeout(()=>{
             MathJax.typeset();
-        },500);
+        },300);
     };
     $(".studying .deck .card").click(function(){FlipCard(this)});
     async function showFc(){
