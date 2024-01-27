@@ -855,6 +855,7 @@ async function showSpacedRepetition(){
     let currentCardKey = studyProgress[0][0].id;
     let flipped = false;
     
+    
     const ScaleToFit = function(){
         let el = $(".studying .deck .card");
         let cardWidth = $(el).width();
@@ -865,6 +866,11 @@ async function showSpacedRepetition(){
         let scale = cardWidth/sideWidth;
         console.log(scale)
         scale = Math.min(scale,1);
+        if(scale < 1){
+            $(el).find(".card-item").css("align-items","start");
+        }else{
+            $(el).find(".card-item").css("align-items","center");
+        }
         $(el).find(".card-side").css("transform","scale("+String(scale)+")");
     }
     const FlipCard = function(te=this){
@@ -1246,6 +1252,11 @@ async function showFlashcardStudyMode(){
         let scale = cardWidth/sideWidth;
         console.log(scale)
         scale = Math.min(scale,1);
+        if(scale < 1){
+            $(el).find(".card-item").css("align-items","start");
+        }else{
+            $(el).find(".card-item").css("align-items","center");
+        }
         $(el).find(".card-side").css("transform","scale("+String(scale)+")");
     }
     const FlipCard = function(te=this){
