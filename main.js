@@ -348,6 +348,7 @@ async function showStudysets(){
             gsap.fromTo(".menu",{y:0},{duration:0.3,ease:"power4.out",y:10,opacity:0,onComplete:()=>{$(".menu").addClass("hidden");}});
         } 
     });
+    $("title").text("Decks - Home Page"); 
     if($("body").attr("dark")=="false"){
         $("#darkmodeswitcher").html(`<img src="assets/images/moon.svg" alt="Dark Mode"/>`);
     }else{
@@ -686,6 +687,7 @@ async function showCreateStudyset(){
         updatePage();
     });
     Object.keys(flashcards).forEach(registerFlashcard);
+    $("title").text("Decks - Editing "+studySet.name); 
     $("#saveflashcardbutton").click(function(){
         editMode = false;
         $(".flashcard-editor").removeClass("editing-mode");
@@ -801,6 +803,7 @@ async function showStudy(){
         </div>
     </div>
 </section>`)[0];
+    $("title").text("Decks - Choose Study Mode"); 
     $(".c").html(el);
     $(".spaced-repetition").click(function(){
         currentPage = "spacedrepetition";
@@ -857,6 +860,7 @@ async function showSpacedRepetition(){
     $(".c").html(el);
     showLoaderAtElement($(".studying")[0]);
     let f = Object.keys(studySet.flashcards);
+    $("title").text("Decks - Studying "+studySet.name); 
     let existFlashcards = {};
     for(let i in f){
         existFlashcards[f[i]]=true;
@@ -1243,6 +1247,7 @@ async function showFlashcardStudyMode(){
     showLoaderAtElement($(".studying")[0]);
     let f = Object.keys(studySet.flashcards);
     let existFlashcards = {};
+    $("title").text("Decks - Studying "+studySet.name); 
     for(let i in f){
         existFlashcards[f[i]]=true;
     }
@@ -1448,7 +1453,8 @@ async function updatePage(){
     showLoaderAtElement($(".c")[0]);
     console.log("Updating page...");
     $(".c").css("overflow","hidden");
-    $("body").css("overflow","auto");   
+    $("body").css("overflow","auto");  
+    $("title").text("Decks"); 
     switch(currentPage){
         case "home":
             await showStudysets();

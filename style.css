@@ -96,8 +96,7 @@ body{
     background-size: cover;
 }
 body.transitioning *,body.transitioning *::before,body.transitioning *::after{
-    transition: all 0.2s ease-in-out !important;
-    transition: opacity 0s linear !important;
+    transition: all 0.2s ease-in-out,opacity 0s linear !important;
 }
 .c{
     /* backdrop-filter:url(#blur) brightness(0.2); */
@@ -1518,6 +1517,9 @@ section.studying .buttons{
         max-width:100%;
         margin-top:10px;
         margin-left:0 !important;
+    }
+    .preview{
+        display:none !important;
     }
     
 }
