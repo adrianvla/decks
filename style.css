@@ -222,10 +222,12 @@ textarea{
     display:flex;
     flex-direction: column;
     padding:25px;
+    padding-bottom:0;
     gap:25px;
     z-index: 0;
     width: calc(100vw - 50px);
-    height: calc(100vh - 50px);
+    height: calc(100vh - 25px);
+
 }
 .glow{
     text-shadow: 0px 0px 100px var(--shadow);
@@ -266,6 +268,12 @@ section.homepage{
     font-size:3rem;
     font-family: 'Optician', sans-serif;
     text-align: center;
+    height:110px;
+    text-overflow: ellipsis;
+    overflow:hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;  
 }
 .description{
     opacity:0.7;
@@ -556,6 +564,7 @@ textarea:focus, input:focus, textarea:active, input:active{
     display: flex;
     justify-content: center;
     align-items: center;
+    max-height:95vh;
 }
 .flashcard-editor .card{
     gap:20px;
@@ -589,6 +598,45 @@ textarea:focus, input:focus, textarea:active, input:active{
     z-index:3;
     
 }
+.preview{
+    display:flex;
+    position:absolute;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(25px) saturate(180%);
+    background-color: var(--bg2trans);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    /* top:calc(-3rem); */
+    top:0;
+    left:calc(-100% - 20px - 10px);
+    bottom:0;
+    z-index:5;
+    width:100%;
+    height:max-content;
+    /* margin-left:calc(-100% - 20px - 10px); */
+    flex-wrap:wrap;
+    display: block;
+    justify-content: center;
+    align-items: center;
+    color:var(--text);
+    padding-top:20px;
+    padding-bottom:20px;
+    gap:10px;
+    font-size:2rem;
+    padding-left:10px;
+}
+.preview img{
+    width:100%;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background-color: var(--bg2trans);
+    color:var(--text);
+    padding-top:10px;
+    padding-bottom:10px;
+}
+
 .texteditor .tools button{
     border:0;
     border-radius:12px;

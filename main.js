@@ -183,9 +183,9 @@ async function registerVirtualTextarea(){
         <button class="nozoom italic round">I</button>
         <button class="nozoom underline round">U</button>
         <button class="nozoom strikethrough round">S</button>
-        <button class="nozoom LaTeX round">\\(\\LaTeX\\)</button>
         <button class="nozoom add-image round"><div class="icon"><img src="assets/images/image-regular.svg" alt="Image"></div></button>
     </div>`);
+        el.parent().append(`<div class="preview" id="preview${uuid}" style="opacity:0"></div>`)
         try{MathJax.typeset();}catch(e){console.log(e);}
         $("#tools"+uuid+" .bold").click(function(){
             document.execCommand("bold",false,null);
@@ -221,13 +221,19 @@ async function registerVirtualTextarea(){
         el.parent().mouseenter(function(){
             isFocused=true;
             gsap.to("#tools"+uuid,{duration:0.3,ease:"power4.out",opacity:1});
+            gsap.to("#preview"+uuid,{duration:0.3,ease:"power4.out",opacity:1});
             gsap.to(el.find(".background")[0],{duration:0.3,ease:"power4.out",borderTopRightRadius:0});
+            // $("#preview"+uuid).css("top",String(el.find(".virtual").offset().top)+"px");
+            // $("#preview"+uuid).css("left",String(el.find(".virtual").offset().left)+"px");
+            // $("#preview"+uuid).css("width",String(el.find(".virtual").width())+"px");
+
         });
         el.parent().mouseleave(function(){
             if(dragndrop_opened) return;
             isFocused=false;
             gsap.fromTo(".dragndrop", {opacity: 1,y:0}, {opacity: 0,y:100, duration: 0.2, ease: "power2.out",onComplete:()=>{$(".dragndrop").remove();}})
             gsap.to("#tools"+uuid,{duration:0.3,ease:"power4.out",opacity:0});
+            gsap.to("#preview"+uuid,{duration:0.3,ease:"power4.out",opacity:0});
             gsap.to(el.find(".background")[0],{duration:0.3,ease:"power4.out",borderTopRightRadius:12});
         });
         $("#tools"+uuid+" .add-image").click(async function(){
@@ -268,6 +274,8 @@ async function registerVirtualTextarea(){
             tempEl.remove();
             gsap.to([el[0],el.find(".background")[0]],{duration:0.3,ease:"power4.out",height:h});
             // updateCursor();
+            $("#preview"+uuid).html(val);
+            MathJax.typeset([$("#preview"+uuid)[0]]);
         };
         inputFunc();
         el.on("keydown",inputFunc);
@@ -503,6 +511,7 @@ async function saveStudySet(){
 
 
 async function showCreateStudyset(){
+    $(".c").css("overflow","auto");
     let editMode = false;
     let currentlyEditing = null;
     $(".c").html(`<section class="flashcard-page">
@@ -1370,26 +1379,30 @@ async function showFlashcardStudyMode(){
 let currentPage = "home";
 async function updatePage(){
     unBindAllKeys();
+    showLoaderAtElement($(".c")[0]);
+    console.log("Updating page...");
+    $(".c").css("overflow","hidden");
     switch(currentPage){
         case "home":
-            showStudysets();
+            await showStudysets();
             break;
         case "createstudyset":
-            showCreateStudyset();
+            await showCreateStudyset();
             break;
         case "study":
-            showStudy();
+            await showStudy();
             break;
         case "spacedrepetition":
-            showSpacedRepetition();
+            await showSpacedRepetition();
             break;
         case "studyusingcards":
-            showFlashcardStudyMode();
+            await showFlashcardStudyMode();
             break;
         default:
-            showStudysets();
+            await showStudysets();
             break;
     }
+    removeAllLoaders();
 
 }
 async function importStudySetFromURL(url){
