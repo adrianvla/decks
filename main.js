@@ -327,12 +327,46 @@ async function openDragNDropImport(){
 }
 async function showStudysets(){
     $(".c").html(`<section class="homepage">
-    <div class="flex-opposite nav"><h1 class="glow">Your studysets</h1><div><button class="glowbox" id="createstudyset">+ Add</button><button class="glowbox" id="importstudyset">Import</button><button class="glowbox" id="logoutbutton">Logout</button></div></div>
+    <div class="flex-opposite nav"><h1 class="glow">Your studysets</h1><div class="button menu-btn"><div class="p"></div><div class="p"></div><div class="p"></div><div class="menu hidden">
+    <button class="glowbox" id="createstudyset">+ Add</button>
+    <button class="glowbox" id="importstudyset">Import</button>
+    <button class="glowbox img-container" id="darkmodeswitcher"></button>
+    <div class="sep"></div>
+    <button class="glowbox destroy" id="logoutbutton">Logout</button>
+    </div></div></div>
     <div class="card-list"></div>
 </section>`);
     showLoaderAtElement($(".card-list")[0]);
     const studysets = await getDocs(collection(db, "studysets"));
     removeAllLoaders();
+    $(".menu-btn").click(function(){
+        if($(".menu").hasClass("hidden")){
+            $(".menu").removeClass("hidden").css("opacity",0);
+            gsap.fromTo(".menu",{y:10},{duration:0.3,ease:"power4.out",y:0,opacity:1});
+        }else{
+            gsap.fromTo(".menu",{y:0},{duration:0.3,ease:"power4.out",y:10,opacity:0,onComplete:()=>{$(".menu").addClass("hidden");}});
+        } 
+    });
+    if($("body").attr("dark")=="false"){
+        $("#darkmodeswitcher").html(`<img src="assets/images/moon.svg" alt="Dark Mode"/>`);
+    }else{
+        $("#darkmodeswitcher").html(`<img src="assets/images/sun.svg" alt="Light Mode" style="filter:invert(0.9)"/>`);
+    }
+    let darkmodeTimeout = null;
+    $("#darkmodeswitcher").click(function(){
+        try{clearTimeout(darkmodeTimeout);}catch(e){}
+        $("body").addClass("transitioning");
+        if($("body").attr("dark")=="true"){
+            $("body").attr("dark","false");
+            localStorage.setItem("darkmode","false");
+            $("#darkmodeswitcher").html(`<img src="assets/images/moon.svg" alt="Dark Mode"/>`);
+        }else{
+            $("body").attr("dark","true");
+            localStorage.setItem("darkmode","true");
+            $("#darkmodeswitcher").html(`<img src="assets/images/sun.svg" alt="Light Mode" style="filter:invert(0.9)"/>`);
+        }
+        darkmodeTimeout = setTimeout(()=>{$("body").removeClass("transitioning");},200);
+    });
     studysets.forEach((DOC) => {
         try{
             let studyset = DOC.data();
@@ -466,7 +500,7 @@ async function showStudysets(){
             updatePage();
         });
     });
-    $("#importstudyset").click(async function(){
+    const importFromDragNDrop = async function(){
         let text = await openDragNDropImport($("section")[0]);
         let set = {};
         try{
@@ -485,6 +519,37 @@ async function showStudysets(){
             showError("Invalid JSON");
             return;
         }
+    }
+    const importFromJSON = async function(){
+        openModal("Import Deck",$(`<textarea></textarea>`),$(`<button class="ok big nozoom" id="okimportdeckjson">OK</button>`)[0]);
+        $("#okimportdeckjson").click(async function(){
+            closeModal();
+            let text = $("#modal textarea").val();
+            let set = {};
+            try{
+                set = JSON.parse(text);
+                console.log(set);
+                if(set.name == undefined || set.background == undefined || set.flashcards == undefined){
+                    showError("Invalid Flashcard Structure");
+                    return;
+                }else{
+                    showLoaderAtElement($("body")[0],true);
+                    let docRef = await addDoc(collection(db, "studysets"), set);
+                    updatePage();
+                    removeAllLoaders();
+                }
+            }catch(error){
+                showError("Invalid JSON");
+                return;
+            }
+        });
+    }
+    $("#importstudyset").click(async function(){
+        //show popup
+        openModal("Choose a Method",$(`<span>Choose how you would like to import your Flashcard Deck</span>`),`<div class="grid112"><button id="importstudysetfromfile" class="nozoom glowbox" style="grid-area:a;">Import from File</button><button id="importstudysetfromjson" class="nozoom glowbox" style="grid-area:b;">Import from JSON</button><button id="cancelandclosemodal" class="nozoom glowbox destroy" style="grid-area:c;">Cancel</button></div>`);
+        $("#importstudysetfromfile").click(async function(){await closeModal();await importFromDragNDrop();});
+        $("#importstudysetfromjson").click(importFromJSON);
+        $("#cancelandclosemodal").click(closeModal);
     });
     $("#logoutbutton").click(()=>{
         localStorage.removeItem("db_id");
@@ -1435,6 +1500,14 @@ async function startApp(){
     if(importUrl != null){
         await importStudySetFromURL(importUrl);
     }
+    //init darkmode
+    let darkmode = localStorage.getItem("darkmode");
+    if(darkmode == null){
+        localStorage.setItem("darkmode","false");
+        darkmode = "false";
+    }
+    $("body").attr("dark",darkmode);
+    
     updatePage();
     // showCreateStudyset();
 }
