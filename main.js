@@ -336,6 +336,7 @@ async function showStudysets(){
     </div></div></div>
     <div class="card-list"></div>
 </section>`);
+    $("body").css("overflow","hidden");   
     showLoaderAtElement($(".card-list")[0]);
     const studysets = await getDocs(collection(db, "studysets"));
     removeAllLoaders();
@@ -1447,6 +1448,7 @@ async function updatePage(){
     showLoaderAtElement($(".c")[0]);
     console.log("Updating page...");
     $(".c").css("overflow","hidden");
+    $("body").css("overflow","auto");   
     switch(currentPage){
         case "home":
             await showStudysets();

@@ -1350,6 +1350,18 @@ section.studying .buttons{
     .nav{
         flex-direction: column;
     }
+    .nav > .menu-btn > .menu{
+        right:auto;
+        margin-top:calc(3rem + 20px);
+        background:rgb(57, 71, 97);
+        width:50%;
+        justify-content: stretch;
+        align-items: stretch;
+    }
+    .nav > .menu-btn > .menu > *{
+        width:100% !important;
+        max-width:100000px;
+    }
     .modal,.popup{
         width:100%;
         height:100%;
