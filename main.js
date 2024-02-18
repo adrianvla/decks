@@ -714,7 +714,11 @@ async function showCreateStudyset(){
         MathJax.typeset();
     });
     $("body").get(0).style.setProperty("--cardlist-height", String($(".cardlist").height())+"px");
-    MathJax.typeset();
+    try{
+        MathJax.typeset();
+    }catch(e){
+        showError(e);
+    }
 }
 let studyProgress = {};
 let mode = "spacedrepetition";
