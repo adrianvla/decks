@@ -275,6 +275,13 @@ async function registerVirtualTextarea(){
             gsap.to([el[0],el.find(".background")[0]],{duration:0.3,ease:"power4.out",height:h});
             // updateCursor();
             $("#preview"+uuid).html(val);
+            let W = el.find(".virtual").width();
+            if(W > (el.find(".virtual")[0].getBoundingClientRect().left)){
+                W = el.find(".virtual")[0].getBoundingClientRect().left-57;
+                console.log("LONGER")
+            }
+            $("#preview"+uuid).css("width",W+"px");
+            $("#preview"+uuid).css("left",`${-W-10-20-2}px`);
             MathJax.typeset([$("#preview"+uuid)[0]]);
         };
         inputFunc();
