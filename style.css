@@ -144,6 +144,7 @@ body.transitioning *,body.transitioning *::before,body.transitioning *::after{
     /* border-bottom: 1px solid var(--border); */
     /* width:100%; */
     height:max-content;
+    max-height: 100%;
 }
 
 .title{
@@ -1295,7 +1296,8 @@ body{
     max-width:calc(100vw - 40px);
 }
 .card-side{
-    height:max-content;
+    /* height:max-content; */
+    height:100%;
     font-size:2rem;
 }
 
@@ -1429,13 +1431,13 @@ section.studying .buttons{
     .card-item{
         margin-inline:0;
         width:100%;
-        height:max-content;
+        /* height:max-content; */
     }
     .card-item button{
         margin-bottom:0;
     }
     .deck .card .card-item{
-        width:max-content;
+        /* width:max-content; */
         max-width:100%;
         max-height:75vh;
     }
